@@ -82,6 +82,7 @@ private:
     QMap<Downloader*, QModelIndex> downloaderMap; // tracking
     SortProxyModel *m_proxyModel;
     QItemSelectionModel *m_selectionModel;
+    QTimer *m_timer;
     int m_maks_concurrent;
     int m_maksFileSizeCount;
     int m_repoID;
