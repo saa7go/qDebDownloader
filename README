@@ -1,0 +1,7 @@
+Apt-Web Qt4 0.1
+
+Untuk mendapatkan branch 'testing', lakukan clone seperti biasa:
+$ git clone git@github.com:saa7go/apt-web-qt4.git
+$ cd apt-web-qt4
+kemudian:
+$ git checkout testing
