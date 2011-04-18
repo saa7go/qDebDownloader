@@ -50,7 +50,6 @@ DownloadData::DownloadData(const DownloadData &other)
 
 DownloadData::~DownloadData()
 {
-//    qDebug() << this << "destroyed";
     if(!d->ref.deref()) {
         delete d;
     }
