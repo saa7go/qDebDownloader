@@ -293,8 +293,9 @@ void Form::on_unduhButton_clicked()
         m_model->setData(m_model->index(idx.row(), 4), 0);
     }
 
-    downloaderMap.clear();
+    downloaderMap.clear(); // kosongkan pemetaan objek kelas Downloader dengan QModelIndex sebelumnya
 
+    // jika antrian unduhan tidak ada keluar dari fungsi ini
     if(m_queue.count() == 0)
     {
         QMessageBox::warning(this, tr("Unduhan"), tr("Harap pilih minimal satu paket yang ingin anda untuh."));
@@ -311,6 +312,8 @@ void Form::on_unduhButton_clicked()
     ui->cariPaketLineEdit->setEnabled(false);
     ui->buttonWidget->show();
 
+    qApp->processEvents();
+
     m_timer->start();
     while(m_queue.count() > 0)
     {
@@ -323,23 +326,28 @@ void Form::on_unduhButton_clicked()
             downloaderMap[dl] = idx;
             m_model->setData(m_model->index(curr, 2), 1);
         }
-        else
+        else {
+            // jika Downloader telah terpakai semua
+            // keluar dari loop
             break;
+        }
     }
 }
 
 void Form::slotDownloadFinished()
 {
     Downloader *downloader = qobject_cast<Downloader*>(sender());
-    if(downloader) // downloader valid (tidak sama dengan null)
+    if(downloader) // periksa jika fungsi ini diterima dari objek Downloader
     {
-        QModelIndex idx = downloaderMap.value(downloader, QModelIndex());
-        if(!idx.isValid())
+        QModelIndex idx = downloaderMap.value(downloader);
+        if(!idx.isValid()) // tidak mengunduh
         {
-            qDebug() << "slotDownloadFinished: index tidak valid!";
+            // seharusnya tidak sampai pada baris ini
+            qDebug() << "slotDownloadFinished: sedang tidak mengunduh!";
         }
         else {
-            downloaderMap.remove(downloader);
+//            downloaderMap.remove(downloader);
+            downloaderMap[downloader] = QModelIndex();
             m_downloaderList.enqueue(downloader);
         }
     }
@@ -359,27 +367,32 @@ void Form::slotDownloadFinished()
     }
     else
     {
+        // kondisi di mana objek unduhan sedang nganggur
+        // semua, cek bila ada unduhan yang sedang di-paused.
         if(m_downloaderList.count() == m_maks_concurrent)
         {
-            // pastikan tidak ada yg masih PAUSED
+            // loop untuk memastikan tidak ada unduhan yg masih PAUSED
             for(int i = 0; i < m_model->rowCount(); i++)
             {
                 if(m_model->index(i, 1).data(Qt::CheckStateRole).toInt() == 0)
-                    continue;
+                    continue; // abaikan index yg tidak dipilih untuk diunduh
                 else {
-                    // masih ada yang PAUSED
+                    // cek jika masih ada unduhan yang di-paused
                     if(m_model->index(i, 2).data(Qt::EditRole).toInt() == DownloadData::Paused)
-                        return;
+                        return; // keluar dari fungsi ini
                 }
             }
 
+            // semua unduhan telah telah selesai diunduh
             while(m_downloaderList.count() > 0)
             {
+                // saatnya menhancurkan objek unduhan
                 QObject *obj = m_downloaderList.dequeue();
                 obj->setParent(0);
                 obj->deleteLater();
             }
 
+            // hentikan timer untuk mengecek status unduhan
             m_timer->stop();
             ui->unduhButton->setEnabled(true);
             ui->cariButton->setEnabled(true);
@@ -586,7 +599,11 @@ void Form::setTotalFileSize(const QModelIndex &idx)
 
 void Form::on_lanjutkanButton_clicked()
 {
-    if(!ui->treeView->currentIndex().isValid())
+//    if(!ui->treeView->currentIndex().isValid())
+//        return;
+    if(!m_selectionModel->hasSelection())
+        return;
+    if(m_selectionModel->selectedIndexes().count() == 0)
         return;
 
     qDebug() << "Lanjutkan";
@@ -594,46 +611,57 @@ void Form::on_lanjutkanButton_clicked()
     ui->hentikanButton->setEnabled(true);
     ui->batalButton->setEnabled(true);
 
-    QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
+//    QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
+    QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
     if(!idx.isValid())
         return;
 
     idx = m_model->index(idx.row(), 2);
-    if(idx.data(Qt::EditRole).toInt() != 3) // cek apakah td melakukan pause?
+    if(idx.data(Qt::EditRole).toInt() != DownloadData::Paused) // cek jika status unduha dalam keadaan PAUSE atau tidak
         return;
 
-    idx = idx.model()->index(idx.row(), 0);
+    idx = m_model->index(idx.row(), 0);
     if(!idx.isValid())
     {
         qDebug() << "Tidak valid!";
         return;
     }
 
+    // cek jika ada Downloader yg nganggur
     if(m_downloaderList.count() > 0)
     {
+        // jika ada, melanjutkan unduhan
         Downloader *dl = m_downloaderList.dequeue();
         dl->download(idx);
         downloaderMap[dl] = idx;
     }
-    else
+    else // jika Downloader terpakai semua
     {
+        // ganti status menjadi WAITING
         m_model->setData(m_model->index(idx.row(), 2), DownloadData::Waiting);
+        // masukkan kembali ke antrian unduhan
         m_queue.prepend(idx.row());
     }
 }
 
 void Form::on_hentikanButton_clicked()
 {
-    if(!ui->treeView->currentIndex().isValid())
+//    if(!ui->treeView->currentIndex().isValid())
+//        return;
+    if(!m_selectionModel->hasSelection())
+        return;
+    if(m_selectionModel->selectedIndexes().count() == 0)
         return;
 
     ui->hentikanButton->setEnabled(false);
     ui->lanjutkanButton->setEnabled(true);
     ui->batalButton->setEnabled(true);
 
-    QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
+    QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
     idx = idx.model()->index(idx.row(), 2);
-    if(idx.data(Qt::EditRole).toInt() != 1) // cek apakah benar sedang mengunduh ?
+
+    // cek apakah benar sedang mengunduh
+    if(idx.data(Qt::EditRole).toInt() != DownloadData::Downloading)
         return;
 
     idx = m_model->index(idx.row(), 0);
@@ -646,35 +674,42 @@ void Form::on_hentikanButton_clicked()
     Downloader *dl = downloaderMap.key(idx);
     if(dl == 0)
     {
-        qDebug() << "Ada error";
+        qDebug() << "Downloader tidak ditemukan saat melakukan pause!";
         return;
     }
-    qDebug() << "Hentikan";
+    qDebug() << "Pause unduhan" << idx.data().toString();
     dl->pause();
 }
 
 void Form::on_batalButton_clicked()
 {
-    if(ui->treeView->currentIndex().isValid())
+//    if(ui->treeView->currentIndex().isValid())
+    if(m_selectionModel->hasSelection() && m_selectionModel->selectedIndexes().count() > 0)
     {
-        QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
+//        QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
+        QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
         idx = m_model->index(idx.row(), 2);
         int status = idx.data(Qt::EditRole).toInt();
         idx = m_model->index(idx.row(), 0);
+
+        // jika unduhan dalam keadaan sedang mengunduh
         if(status == DownloadData::Downloading)
         {
             Downloader *dl = downloaderMap.key(idx);
+
+            // pastikan Downloader valid
             if(dl != 0)
             {
                 qDebug() << "Batal";
-                dl->cancel();
+                dl->cancel(); // batalkan unduhan, pada kondisi ini penghapusan file dikelola oleh objek Downloader
             }
             else
             {
-                qDebug() << "Ada error";
+                qDebug() << "Downloader tidak ditemukan!";
             }
 
         }
+        // jika unduhan dalam keadaan PAUSED atau menunggu untuk diunduh
         else if(status == DownloadData::Waiting || status == DownloadData::Paused)
         {
             QSettings settings("./apt-web.ini", QSettings::IniFormat);
@@ -687,17 +722,20 @@ void Form::on_batalButton_clicked()
             QFile file(filePath);
             if(file.exists())
             {
+                // jika status unduhan dalam keadaan menunggu
+                // maka antrian yg sebelumnya ditambahkan harus dihapus
                 if(status == DownloadData::Waiting)
                     m_queue.removeAll(idx.row());
 
-                file.remove();
+                file.remove(); // hapus unduhan yg dibatalkan
+                // ganti status unduhan menjadi CANCELED
                 m_model->setData(m_model->index(idx.row(), 2), DownloadData::Canceled);
                 m_model->setData(m_model->index(idx.row(), 3), 100);
             }
 
             // cek jika sudah tidak ada unduhan
-            if(m_queue.count() == 0)
-                slotDownloadFinished();
+//            if(m_queue.count() == 0)
+            slotDownloadFinished();
         }
     }
 }
