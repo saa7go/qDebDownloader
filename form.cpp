@@ -47,9 +47,11 @@ Form::Form(QWidget *parent) :
     m_manager(new QNetworkAccessManager(this)),
     m_model(new DownloadTableModel(this)),
     m_proxyModel(new SortProxyModel(this)),
+    m_timer(new QTimer(this)),
     m_maksFileSizeCount(FILESIZE_GETTER_COUNT)
 {
     ui->setupUi(this);
+
     init();
 
     QSettings settings("./apt-web.ini", QSettings::IniFormat);
@@ -90,17 +92,16 @@ Form::Form(QWidget *parent) :
     ui->treeView->setItemDelegateForColumn(3, new ProgressBarDelegate(this));
     ui->treeView->header()->hideSection(0);
     ui->treeView->header()->hideSection(2);
-    ui->cariPaketLineEdit->setFocus();
+    ui->treeView->header()->setMovable(false);
     m_selectionModel = ui->treeView->selectionModel();
+    ui->cariPaketLineEdit->setFocus();
     ui->buttonWidget->hide();
 
     connect(ui->actionTentang_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(setTotalFileSize(QModelIndex)));
 
-    QTimer *timer = new QTimer(this);
-    timer->setInterval(500);
-    connect(timer, SIGNAL(timeout()), SLOT(timerTimeout()));
-    timer->start();
+    m_timer->setInterval(500);
+    connect(m_timer, SIGNAL(timeout()), SLOT(timerTimeout()));
 }
 
 Form::~Form()
@@ -179,6 +180,14 @@ void Form::init()
             break;
         }
     }
+
+#ifdef Q_WS_WIN
+    // note: di windows xp default font terasa sangat kecil
+    // jadi saya coba set ke 10
+    QFont tmpFont = qApp->font();
+    tmpFont.setPointSize(10);
+    qApp->setFont(tmpFont);
+#endif
 
     connect(repoGroup, SIGNAL(triggered(QAction*)), SLOT(repoChanged(QAction*)));
 }
@@ -302,6 +311,7 @@ void Form::on_unduhButton_clicked()
     ui->cariPaketLineEdit->setEnabled(false);
     ui->buttonWidget->show();
 
+    m_timer->start();
     while(m_queue.count() > 0)
     {
         if(m_downloaderList.count() > 0)
@@ -316,15 +326,13 @@ void Form::on_unduhButton_clicked()
         else
             break;
     }
-
 }
 
 void Form::slotDownloadFinished()
 {
     Downloader *downloader = qobject_cast<Downloader*>(sender());
-    if(downloader)
+    if(downloader) // downloader valid (tidak sama dengan null)
     {
-        downloader = qobject_cast<Downloader*>(sender());
         QModelIndex idx = downloaderMap.value(downloader, QModelIndex());
         if(!idx.isValid())
         {
@@ -342,7 +350,7 @@ void Form::slotDownloadFinished()
     {
         int curr = m_queue.dequeue();
         QModelIndex idx = m_model->index(curr, 0);
-        Downloader *dl = m_downloaderList.dequeue();/*->download(idx);*/
+        Downloader *dl = m_downloaderList.dequeue();
         dl->download(idx);
         downloaderMap[dl] = idx;
         m_model->setData(m_model->index(curr, 2), 1);
@@ -372,6 +380,7 @@ void Form::slotDownloadFinished()
                 obj->deleteLater();
             }
 
+            m_timer->stop();
             ui->unduhButton->setEnabled(true);
             ui->cariButton->setEnabled(true);
             m_model->setCheckEnabled(true);
