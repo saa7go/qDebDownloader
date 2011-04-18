@@ -17,25 +17,27 @@
 
 #include "form.h"
 #include "ui_form.h"
-#include "aptweb.h"
-#include <QNetworkAccessManager>
-#include "downloadtablemodel.h"
-#include "downloader.h"
-#include <QDebug>
-#include "progressbardelegate.h"
+#include <QTimer>
+#include <QDesktopWidget>
 #include <QMessageBox>
 #include <QActionGroup>
 #include <QFile>
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QSettings>
+#include <QNetworkAccessManager>
+#include <QDebug>
+
+#include "aptweb.h"
+#include "downloadtablemodel.h"
+#include "downloader.h"
+#include "progressbardelegate.h"
 #include "proxydialog.h"
 #include "aboutdialog.h"
 #include "filesizedownloader.h"
 #include "helper.h"
 #include "sortproxymodel.h"
-#include <QTimer>
-#include <QDesktopWidget>
+
 
 #define FILESIZE_GETTER_COUNT 6
 
@@ -84,33 +86,15 @@ Form::Form(QWidget *parent) :
     m_maks_concurrent = /*tmp_maks_concurrent =*/ maks_concurrent;
 
     m_proxyModel->setSourceModel(m_model);
-//    ui->tableView->setModel(m_proxyModel);
-//    ui->tableView->setItemDelegateForColumn(3, new ProgressBarDelegate(this));
-//    ui->tableView->horizontalHeader()->hideSection(0);
-//    ui->tableView->horizontalHeader()->hideSection(2);
     ui->treeView->setModel(m_proxyModel);
     ui->treeView->setItemDelegateForColumn(3, new ProgressBarDelegate(this));
     ui->treeView->header()->hideSection(0);
     ui->treeView->header()->hideSection(2);
     ui->cariPaketLineEdit->setFocus();
-//    m_selectionModel = ui->tableView->selectionModel();
     m_selectionModel = ui->treeView->selectionModel();
     ui->buttonWidget->hide();
 
     connect(ui->actionTentang_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-//    connect(m_aptWeb, SIGNAL(downloadList(QStringList)), this, SLOT(downloadList(QStringList)));
-//    connect(m_aptWeb, SIGNAL(error(QString)), this, SLOT(error(QString)));
-
-//    for(int i = 0; i < m_maks_concurrent; i++)
-//    {
-//        Downloader *downloader = new Downloader(m_manager, this);
-//        m_downloaderList.enqueue(downloader);
-//        connect(downloader, SIGNAL(progressSize(QModelIndex,qint64)), SLOT(slotProgressSize(QModelIndex,qint64)));
-//        connect(downloader, SIGNAL(progressDownload(QModelIndex,int)), SLOT(slotProgressDownload(QModelIndex,int)));
-//        connect(downloader, SIGNAL(error(QModelIndex,QString)), SLOT(slotError(QModelIndex,QString)));
-//        connect(downloader, SIGNAL(downloadFinish()), SLOT(slotDownloadFinished()));
-//    }
-
     connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(setTotalFileSize(QModelIndex)));
 
     QTimer *timer = new QTimer(this);
@@ -347,7 +331,6 @@ void Form::slotDownloadFinished()
             qDebug() << "slotDownloadFinished: index tidak valid!";
         }
         else {
-    //    m_model->setData(m_model->index(idx.row(), 2), 2); // set to finished
             downloaderMap.remove(downloader);
             m_downloaderList.enqueue(downloader);
         }
@@ -461,16 +444,6 @@ void Form::setMaksConcurrent(int val)
 void Form::writeSettings()
 {
     QSettings settings("./apt-web.ini", QSettings::IniFormat);
-//    int current_mirror = 0;
-//    QList<QAction*> mirrorList = repoGroup->actions();
-//    for(int i = 0; i < mirrorList.count(); i++)
-//    {
-//        if(mirrorList.at(i)->isChecked())
-//        {
-//            current_mirror = i;
-//            break;
-//        }
-//    }
     settings.setValue("mirror-repo", m_repoID);
 }
 
@@ -604,8 +577,6 @@ void Form::setTotalFileSize(const QModelIndex &idx)
 
 void Form::on_lanjutkanButton_clicked()
 {
-//    if(!ui->tableView->currentIndex().isValid())
-//        return;
     if(!ui->treeView->currentIndex().isValid())
         return;
 
@@ -613,7 +584,7 @@ void Form::on_lanjutkanButton_clicked()
     ui->lanjutkanButton->setEnabled(false);
     ui->hentikanButton->setEnabled(true);
     ui->batalButton->setEnabled(true);
-//    QModelIndex idx = m_proxyModel->mapToSource(ui->tableView->currentIndex());
+
     QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
     if(!idx.isValid())
         return;
@@ -644,15 +615,13 @@ void Form::on_lanjutkanButton_clicked()
 
 void Form::on_hentikanButton_clicked()
 {
-//    if(!ui->tableView->currentIndex().isValid())
-//        return;
     if(!ui->treeView->currentIndex().isValid())
         return;
 
     ui->hentikanButton->setEnabled(false);
     ui->lanjutkanButton->setEnabled(true);
     ui->batalButton->setEnabled(true);
-//    QModelIndex idx = m_proxyModel->mapToSource(ui->tableView->currentIndex());
+
     QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
     idx = idx.model()->index(idx.row(), 2);
     if(idx.data(Qt::EditRole).toInt() != 1) // cek apakah benar sedang mengunduh ?
@@ -661,14 +630,14 @@ void Form::on_hentikanButton_clicked()
     idx = m_model->index(idx.row(), 0);
     if(!idx.isValid())
     {
-        qDebug() << "ERROR GAN!";
+        qDebug() << "Ada error";
         return;
     }
 
     Downloader *dl = downloaderMap.key(idx);
     if(dl == 0)
     {
-        qDebug() << "WEW";
+        qDebug() << "Ada error";
         return;
     }
     qDebug() << "Hentikan";
@@ -677,10 +646,8 @@ void Form::on_hentikanButton_clicked()
 
 void Form::on_batalButton_clicked()
 {
-//    if(ui->tableView->currentIndex().isValid())
     if(ui->treeView->currentIndex().isValid())
     {
-//        QModelIndex idx = m_proxyModel->mapToSource(ui->tableView->currentIndex());
         QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
         idx = m_model->index(idx.row(), 2);
         int status = idx.data(Qt::EditRole).toInt();
@@ -695,7 +662,7 @@ void Form::on_batalButton_clicked()
             }
             else
             {
-                qDebug() << "PROBLEM NIH!";
+                qDebug() << "Ada error";
             }
 
         }
@@ -764,7 +731,10 @@ void Form::timerTimeout()
     if(!m_selectionModel->hasSelection())
         return;
 
+    if(m_selectionModel->selectedRows().count() == 0)
+        return;
     QModelIndex idx = m_selectionModel->selectedRows().at(0);
+
     idx = m_proxyModel->mapToSource(idx);
     changeStatusButton(idx);
 }
