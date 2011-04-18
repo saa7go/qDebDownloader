@@ -77,6 +77,10 @@
            <property name="text">
             <string>Cari</string>
            </property>
+           <property name="icon">
+            <iconset resource="image.qrc">
+             <normaloff>:/images/edit-find.png</normaloff>:/images/edit-find.png</iconset>
+           </property>
           </widget>
          </item>
         </layout>
@@ -121,7 +125,11 @@
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Lanjutkan</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="image.qrc">
+              <normaloff>:/images/media-playback-start.png</normaloff>:/images/media-playback-start.png</iconset>
             </property>
            </widget>
           </item>
@@ -131,7 +139,11 @@
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Hentikan</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="image.qrc">
+              <normaloff>:/images/media-playback-pause.png</normaloff>:/images/media-playback-pause.png</iconset>
             </property>
            </widget>
           </item>
@@ -141,7 +153,11 @@
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Batal</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="image.qrc">
+              <normaloff>:/images/media-playback-stop.png</normaloff>:/images/media-playback-stop.png</iconset>
             </property>
            </widget>
           </item>
