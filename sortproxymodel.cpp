@@ -30,14 +30,22 @@ SortProxyModel::~SortProxyModel()
 
 bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    QVariant leftData = sourceModel()->data(left, Qt::EditRole);
-    QVariant rigthData = sourceModel()->data(right, Qt::EditRole);
+    int column = left.column();
+    QVariant leftData, rightData;
 
-    if(leftData.type() == QVariant::Int)
-        return leftData.toInt() < rigthData.toInt();
-    else if(leftData.type() == QVariant::LongLong)
-        return leftData.toLongLong() < rigthData.toLongLong();
-    else {
-        return QString::localeAwareCompare(leftData.toString(), rigthData.toString());
+    if(column == 1) {
+        leftData = sourceModel()->data(left, Qt::DisplayRole);
+        rightData = sourceModel()->data(right, Qt::DisplayRole);
+        return leftData.toString().toAscii() < rightData.toString().toAscii();
+    }
+    else if(column == 3) {
+        leftData = sourceModel()->data(left, Qt::EditRole);
+        rightData = sourceModel()->data(right, Qt::EditRole);
+        return leftData.toInt() < rightData.toInt();
+    }
+    else { // semoga column 4 & 5
+        leftData = sourceModel()->data(left, Qt::EditRole);
+        rightData = sourceModel()->data(right, Qt::EditRole);
+        return leftData.toLongLong() < rightData.toLongLong();
     }
 }
