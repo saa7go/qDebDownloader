@@ -179,6 +179,9 @@
        </item>
        <item>
         <widget class="QTreeView" name="treeView">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
          <property name="showDropIndicator" stdset="0">
           <bool>false</bool>
          </property>
@@ -188,8 +191,11 @@
          <property name="rootIsDecorated">
           <bool>false</bool>
          </property>
-         <property name="itemsExpandable">
+         <property name="uniformRowHeights">
           <bool>false</bool>
+         </property>
+         <property name="itemsExpandable">
+          <bool>true</bool>
          </property>
          <property name="sortingEnabled">
           <bool>true</bool>
@@ -197,6 +203,9 @@
          <property name="expandsOnDoubleClick">
           <bool>false</bool>
          </property>
+         <attribute name="headerStretchLastSection">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -320,7 +329,7 @@
      <x>0</x>
      <y>0</y>
      <width>622</width>
-     <height>29</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Pengaturan">
