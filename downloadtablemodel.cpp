@@ -19,6 +19,8 @@
 #include <QStringList>
 #include <QUrl>
 #include <QDebug>
+#include <QApplication>
+#include <QFont>
 #include "helper.h"
 
 DownloadTableModel::DownloadTableModel(QObject *parent) :
@@ -102,6 +104,13 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
         }
     }
 
+#ifdef Q_WS_WIN
+    if(role == Qt::FontRole) {
+        QFont _font = qApp->font();
+        _font.setBold(true);
+        return _font;
+    }
+#endif
     return QVariant();
 }
 
