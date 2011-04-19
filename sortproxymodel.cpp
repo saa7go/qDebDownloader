@@ -43,9 +43,13 @@ bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right)
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toInt() < rightData.toInt();
     }
-    else { // semoga column 4 & 5
+    else if (column == 4 || column == 5){ // semoga column 4 & 5
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toLongLong() < rightData.toLongLong();
+    }
+    else {
+        qDebug() << "ELSE!";
+        return QSortFilterProxyModel::lessThan(left, right);
     }
 }
