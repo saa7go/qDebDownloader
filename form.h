@@ -73,19 +73,19 @@ private Q_SLOTS:
 private:
     Ui::Form *ui;
     QNetworkAccessManager *m_manager;
-    DownloadTableModel *m_model;
-    QQueue<Downloader*> m_downloaderList;
-    QQueue<int> m_queue;
-    QActionGroup *repoGroup;
-    QQueue<FileSizeDownloader*> m_fileSizeQueue;
-    QQueue<QModelIndex> m_sizeQueue;
+    DownloadTableModel *m_model; // model data unduhan
+    QQueue<Downloader*> m_downloaderList; // antrian objek untuk mengunduh file
+    QQueue<int> m_queue; // antrian unduhan
+    QActionGroup *repoGroup; // menangani pemilihan mirror repositori
+    QQueue<FileSizeDownloader*> m_fileSizeQueue; // antrian objek untuk mengunduh ukuran file
+    QQueue<QModelIndex> m_sizeQueue; // antrian unduhan size file
     QMap<Downloader*, QModelIndex> downloaderMap; // tracking
-    SortProxyModel *m_proxyModel;
-    QItemSelectionModel *m_selectionModel;
-    QTimer *m_timer;
-    int m_maks_concurrent;
-    int m_maksFileSizeCount;
-    int m_repoID;
+    SortProxyModel *m_proxyModel; // model perantara untuk melakukan mengurutkan data
+    QItemSelectionModel *m_selectionModel; // seleksi item data
+    QTimer *m_timer; // timer untuk memeriksa status unduhan
+    int m_maks_concurrent; // maksimum koneksi konkuren untuk mengunduh file
+    int m_maksFileSizeCount; // maksimum koneksi konkuren untuk mendapat size file
+    int m_repoID; // mirror repositori
 
     void initActions();
     void initRepoComboBoxes();
