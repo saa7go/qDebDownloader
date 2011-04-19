@@ -38,7 +38,6 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
     // error = ff0000
     // paused = fffd5a
     // waiting = grey
-
     QRect rect = option.rect;
     QPoint topLeft = option.rect.topLeft();
     rect.setWidth(option.rect.width() - 2);
@@ -51,8 +50,10 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
     width = (index.data(Qt::EditRole).toDouble() / 100.0) * width;
     rect.setWidth(width);
 
-    QColor col;
+
+    QColor col = Qt::transparent;
     int status = index.model()->index(index.row(), 2).data(Qt::EditRole).toInt();
+
     if(status == DownloadData::Downloading)
         col.setNamedColor("#3ef100");
     else if(status == DownloadData::Finished)
@@ -63,44 +64,47 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
         col.setNamedColor("#ff0000");
     else if(status == DownloadData::Waiting)
         col = Qt::gray;
-
+    painter->save();
     painter->setBrush(QBrush(col));
     painter->setPen(Qt::NoPen);
     painter->drawRect(rect);
+    painter->restore();
 
-//    QStyledItemDelegate::paint(painter, option, index);
-//        QStyleOptionProgressBarV2 opt;
-//        opt.rect = option.rect;
-//        opt.minimum = 0;
-//        opt.maximum = 100;
-//        opt.progress = index.data(Qt::EditRole).toInt();
-//        opt.text = QString::number(opt.progress) + "%";
-//        opt.textVisible = true;
-//        opt.textAlignment = Qt::AlignCenter;
-//        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &opt, painter);
 
-//        if(option.state & QStyle::State_Selected)
-//        {
-//            painter->save();
-//            QPen pen(Qt::SolidLine);
-//            pen.setWidth(2);
-//            pen.setColor(option.palette.highlight().color());
-//            QRect rect = option.rect;
-//            rect.setX(rect.x() + 1);
-//            rect.setY(rect.y() + 1);
-//            rect.setWidth(rect.width() - 1);
-//            rect.setHeight(rect.height() - 1);
-//            painter->setPen(pen);
-//            painter->setBrush(Qt::NoBrush);
-//            painter->drawRect(rect);
-//            painter->restore();
-//        }
+    // menggunakan native progresbar
+    /*
+    QStyleOptionProgressBarV2 opt;
+    opt.rect = option.rect;
+    opt.minimum = 0;
+    opt.maximum = 100;
+    opt.progress = index.data(Qt::EditRole).toInt();
+    opt.text = QString::number(opt.progress) + "%";
+    opt.textVisible = true;
+    opt.textAlignment = Qt::AlignCenter;
+    QApplication::style()->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+    if(option.state & QStyle::State_Selected)
+    {
+        painter->save();
+        QPen pen(Qt::SolidLine);
+        pen.setWidth(2);
+        pen.setColor(option.palette.highlight().color());
+        QRect rect = option.rect;
+        rect.setX(rect.x() + 1);
+        rect.setY(rect.y() + 1);
+        rect.setWidth(rect.width() - 1);
+        rect.setHeight(rect.height() - 1);
+        painter->setPen(pen);
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(rect);
+        painter->restore();
+    }
     if(option.state && QStyle::State_Selected)
     {
-        painter->save();;
+        painter->save();
         painter->setPen(Qt::NoPen);
         painter->setBrush(Qt::NoBrush);
         painter->drawRect(option.rect);
         painter->restore();
     }
+    */
 }
