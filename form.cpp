@@ -52,41 +52,12 @@ Form::Form(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    init();
+    initRepoComboBoxes();
+    initActions();
+    initProxy();
+    initConcurrentConnection();
 
-    QSettings settings("./apt-web.ini", QSettings::IniFormat);
-    int idxProxy = settings.value("Proxy/Type", 0).toInt();
-    if(idxProxy < 0 || idxProxy > 3)
-        idxProxy = 0;
-
-    QNetworkProxy proxy;
-    if(idxProxy == 0)
-        proxy.setType(QNetworkProxy::NoProxy);
-    else if(idxProxy == 1)
-        proxy.setType(QNetworkProxy::DefaultProxy);
-    else {
-        if(idxProxy ==  2)
-            proxy.setType(QNetworkProxy::HttpProxy);
-        else if(idxProxy == 3)
-            proxy.setType(QNetworkProxy::Socks5Proxy);
-        else
-            return;
-
-        proxy.setHostName(settings.value("Proxy/Host").toString());
-        proxy.setPort(settings.value("Proxy/Port", 0).toInt());
-        proxy.setUser(settings.value("Proxy/Username").toString());
-        proxy.setPassword(settings.value("Proxy/Password").toString());
-    }
-    m_manager->setProxy(proxy);
-
-    int maks_concurrent = settings.value("maks-concurrent", 1).toInt();
-
-    if(maks_concurrent < 1)
-        maks_concurrent = 1;
-    else if (maks_concurrent > 6)
-        maks_concurrent = 6;
-    m_maks_concurrent = /*tmp_maks_concurrent =*/ maks_concurrent;
-
+    // inisialiasi model pada treeview
     m_proxyModel->setSourceModel(m_model);
     ui->treeView->setModel(m_proxyModel);
     ui->treeView->setItemDelegateForColumn(3, new ProgressBarDelegate(this));
@@ -96,12 +67,20 @@ Form::Form(QWidget *parent) :
     m_selectionModel = ui->treeView->selectionModel();
     ui->cariPaketLineEdit->setFocus();
     ui->buttonWidget->hide();
+    m_timer->setInterval(500);
 
     connect(ui->actionTentang_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(setTotalFileSize(QModelIndex)));
-
-    m_timer->setInterval(500);
     connect(m_timer, SIGNAL(timeout()), SLOT(timerTimeout()));
+
+    // ganti font
+#ifdef Q_WS_WIN
+    // note: di windows xp default font terlihat sangat kecil
+    // jadi saya coba set ke 10
+    QFont tmpFont = qApp->font();
+    tmpFont.setPointSize(10);
+    qApp->setFont(tmpFont);
+#endif
 }
 
 Form::~Form()
@@ -111,7 +90,7 @@ Form::~Form()
     qDebug() << this << "destroyed!";
 }
 
-void Form::init()
+void Form::initRepoComboBoxes()
 {
     QComboBox *cb = ui->distribusiComboBox;
     cb->addItem("Ubuntu 10.10 \"Maverick Meerkat\" i386", 0);
@@ -127,7 +106,10 @@ void Form::init()
     cb->addItem("Ubuntu 7.04 \"Feisty Fawn\" i386", 10);
     cb->addItem("Ubuntu 6.10 \"Edgy Eftt\" Server i386", 11);
     cb->addItem("Ubuntu 6.06 \"Dapper Drake\" i386", 12);
+}
 
+void Form::initActions()
+{
     QAction *action = new QAction(ui->cariPaketLineEdit);
     action->setAutoRepeat(false);
     action->setShortcut(QKeySequence(Qt::Key_Return));
@@ -180,17 +162,49 @@ void Form::init()
             break;
         }
     }
-
-#ifdef Q_WS_WIN
-    // note: di windows xp default font terasa sangat kecil
-    // jadi saya coba set ke 10
-    QFont tmpFont = qApp->font();
-    tmpFont.setPointSize(10);
-    qApp->setFont(tmpFont);
-#endif
-
     connect(repoGroup, SIGNAL(triggered(QAction*)), SLOT(repoChanged(QAction*)));
 }
+
+void Form::initProxy()
+{
+    QSettings settings("./apt-web.ini", QSettings::IniFormat);
+    int idxProxy = settings.value("Proxy/Type", 0).toInt();
+    if(idxProxy < 0 || idxProxy > 3)
+        idxProxy = 0;
+
+    QNetworkProxy proxy;
+    if(idxProxy == 0)
+        proxy.setType(QNetworkProxy::NoProxy);
+    else if(idxProxy == 1)
+        proxy.setType(QNetworkProxy::DefaultProxy);
+    else {
+        if(idxProxy ==  2)
+            proxy.setType(QNetworkProxy::HttpProxy);
+        else if(idxProxy == 3)
+            proxy.setType(QNetworkProxy::Socks5Proxy);
+        else
+            return;
+
+        proxy.setHostName(settings.value("Proxy/Host").toString());
+        proxy.setPort(settings.value("Proxy/Port", 0).toInt());
+        proxy.setUser(settings.value("Proxy/Username").toString());
+        proxy.setPassword(settings.value("Proxy/Password").toString());
+    }
+    m_manager->setProxy(proxy);
+}
+
+void Form::initConcurrentConnection()
+{
+    QSettings settings("./apt-web.ini", QSettings::IniFormat);
+    int maks_concurrent = settings.value("maks-concurrent", 1).toInt();
+
+    if(maks_concurrent < 1)
+        maks_concurrent = 1;
+    else if (maks_concurrent > 6)
+        maks_concurrent = 6;
+    m_maks_concurrent = maks_concurrent;
+}
+
 
 void Form::on_cariButton_clicked()
 {

@@ -87,8 +87,11 @@ private:
     int m_maksFileSizeCount;
     int m_repoID;
 
+    void initActions();
+    void initRepoComboBoxes();
+    void initProxy();
+    void initConcurrentConnection();
 
-    void init();
     void setMaksConcurrent(int val);
     void writeSettings();
     void getFileSize();
