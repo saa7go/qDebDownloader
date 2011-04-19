@@ -82,6 +82,7 @@ void AptWeb::findPackage(const QString &packagesName, Distribution dist)
     data.addQueryItem("packages", packagesName);
     data.addQueryItem("submit", "submit");
     const QByteArray data_encoded = data.toString().remove(0, 1).toAscii();
+    qDebug() << data_encoded;
     request.setUrl(QUrl("http://apt-web.dahsy.at"));
     request.setRawHeader("User-Agent", "AptWeb-Qt 0.1");
     request.setRawHeader("Referer", "http://apt-web.dahsy.at/");
