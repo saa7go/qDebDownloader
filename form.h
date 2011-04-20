@@ -96,6 +96,7 @@ private:
     void writeSettings();
     void getFileSize();
     void changeStatusButton(const QModelIndex &idx);
+    void verifyDownloads();
 };
 
 #endif // FORM_H
