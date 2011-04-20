@@ -64,10 +64,16 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
             if(role == Qt::EditRole)
                 return data.size();
             else {
-                double dSize;
-                QString ukuran;
-                AptOffline::caculateSize(data.size(), &dSize, &ukuran);
-                return QString("%1 %2").arg(QString::number(dSize, 'f', 2)).arg(ukuran);
+                if(m_error.at(index.row()).isEmpty())
+                {
+                    double dSize;
+                    QString ukuran;
+                    AptOffline::caculateSize(data.size(), &dSize, &ukuran);
+                    return QString("%1 %2").arg(QString::number(dSize, 'f', 2)).arg(ukuran);
+                }
+                else {
+                    return m_error.at(index.row());
+                }
             }
         }
         else if(index.column() == 5)
@@ -156,10 +162,18 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
         }
         else if(col == 4)
         {
-            if(m_data.at(row).size() != value.toLongLong())
+            if(role == Qt::DisplayRole)
             {
-                m_data[row].setSize(value.toLongLong());
+                m_error[row] = value.toString();
                 emit dataChanged(index, index);
+            }
+            else
+            {
+                if(m_data.at(row).size() != value.toLongLong())
+                {
+                    m_data[row].setSize(value.toLongLong());
+                    emit dataChanged(index, index);
+                }
             }
         }
         else if(col == 5)
@@ -215,10 +229,12 @@ Qt::ItemFlags DownloadTableModel::flags(const QModelIndex &index) const
 void DownloadTableModel::setUrlList(const QStringList &urlList)
 {
     m_data.clear();
+    m_error.clear();
 
     for(int i = 0; i < urlList.count(); i++)
     {
         m_data.append(DownloadData(urlList.at(i)));
+        m_error << QString();
     }
 
     emit reset();

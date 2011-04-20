@@ -20,6 +20,7 @@
 
 #include <QAbstractTableModel>
 #include <QList>
+#include <QStringList>
 #include "downloaddata.h"
 
 class DownloadTableModel : public QAbstractTableModel
@@ -44,6 +45,7 @@ public:
 
 private:
     QList<DownloadData> m_data;
+    QStringList m_error;
     bool m_checkable;
 };
 
