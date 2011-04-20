@@ -27,6 +27,13 @@ public:
     explicit SortProxyModel(QObject *parent = 0);
     ~SortProxyModel();
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+
+    void setHideUncheked(bool val);
+
+    bool hideUnchecked() const { return m_hideUnchecked; }
+private:
+    bool m_hideUnchecked;
 };
 
 #endif // SORTPROXYMODEL_H

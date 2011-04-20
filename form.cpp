@@ -347,6 +347,7 @@ void Form::on_unduhButton_clicked()
             break;
         }
     }
+    m_proxyModel->setHideUncheked(true);
 }
 
 void Form::slotDownloadFinished()
@@ -816,6 +817,7 @@ void Form::verifyDownloads()
             ui->cariPaketLineEdit->setEnabled(true);
             ui->buttonWidget->hide();
             ui->statusbar->showMessage(tr("Semua paket telah diunduh..."));
+            m_proxyModel->setHideUncheked(false);
         }
     }
 }

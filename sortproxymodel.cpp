@@ -19,7 +19,7 @@
 #include <QDebug>
 
 SortProxyModel::SortProxyModel(QObject *parent) :
-    QSortFilterProxyModel(parent)
+    QSortFilterProxyModel(parent), m_hideUnchecked(false)
 {
 }
 
@@ -52,4 +52,22 @@ bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right)
         qDebug() << "ELSE!";
         return QSortFilterProxyModel::lessThan(left, right);
     }
+}
+
+bool SortProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    if(m_hideUnchecked == false)
+        return true;
+
+    QModelIndex idx = sourceModel()->index(source_row, 1, source_parent);
+    return idx.data(Qt::CheckStateRole).toBool();
+}
+
+void SortProxyModel::setHideUncheked(bool val)
+{
+    if(m_hideUnchecked == val)
+        return;
+    qDebug() << "reset";
+    m_hideUnchecked = val;
+    invalidateFilter();
 }
