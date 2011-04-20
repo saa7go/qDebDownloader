@@ -29,7 +29,7 @@
 #include <QAbstractItemModel>
 
 Downloader::Downloader(QNetworkAccessManager *manager, QWidget *parent) :
-    QObject(parent), m_manager(manager), m_file(0),
+    QObject(parent), m_manager(manager),
     m_progress(0), m_status(DownloadData::Nothing)
 {
     qDebug() << this << "Created";
@@ -62,7 +62,7 @@ void Downloader::download(const QModelIndex &idx)
     if(!url.isValid())
         return;
 
-    m_file = new QFile(fileName);
+    m_file.setFileName(fileName);
     QIODevice::OpenMode openMode = QIODevice::WriteOnly;
     int status = m_index.model()->index(m_index.row(), 2).data(Qt::EditRole).toInt();
     bool continueDownload = false;
@@ -73,10 +73,9 @@ void Downloader::download(const QModelIndex &idx)
         openMode |= QIODevice::Append;
     }
 
-    if(!m_file->open(openMode))
+    if(!m_file.open(openMode))
     {
         emit error(m_index, tr("TIDAK BISA MENULIS FILE"));
-        emit downloadFinish();
         return;
     }
 
@@ -84,7 +83,7 @@ void Downloader::download(const QModelIndex &idx)
     req.setUrl(url);
     if(continueDownload)
     {
-        qint64 start = m_file->size();
+        qint64 start = m_file.size();
         qint64 end = m_index.model()->index(m_index.row(), 5).data(Qt::EditRole).toLongLong()-1;
         QString str = QString("bytes=%1-%2").arg(QString::number(start)).arg(QString::number(end));
         req.setRawHeader("Range",  str.toAscii());
@@ -106,8 +105,8 @@ void Downloader::replyReadRead()
         return;
 
     QByteArray arr = m_reply->readAll();
-    m_file->write(arr);
-    downloadProgress(m_file->size(), m_index.model()->index(m_index.row(), 5).data(Qt::EditRole).toLongLong());
+    m_file.write(arr);
+    downloadProgress(m_file.size(), m_index.model()->index(m_index.row(), 5).data(Qt::EditRole).toLongLong());
 }
 
 void Downloader::replyFinished()
@@ -116,7 +115,7 @@ void Downloader::replyFinished()
     {
         if(m_reply->error() != QNetworkReply::OperationCanceledError) // disengaja
         {
-            m_file->remove();
+            m_file.remove();
             qDebug() << m_reply->errorString();
             emit error(m_index, m_reply->errorString());
         }
@@ -127,10 +126,11 @@ void Downloader::replyFinished()
 
     QAbstractItemModel *model = const_cast<QAbstractItemModel*>(m_index.model());
 
-    if(m_file->size() == model->index(m_index.row(), 5).data(Qt::EditRole).toLongLong())
+    if(m_file.size() == model->index(m_index.row(), 5).data(Qt::EditRole).toLongLong())
         m_status = DownloadData::Finished; //        m_isFinished = true;
 
-    m_file->close();
+    m_file.close();
+
     if(m_status == DownloadData::Paused)
     {
         model = const_cast<QAbstractItemModel*>(m_index.model());
@@ -141,7 +141,7 @@ void Downloader::replyFinished()
         model = const_cast<QAbstractItemModel*>(m_index.model());
         model->setData(model->index(m_index.row(), 2), 4);
         model->setData(model->index(m_index.row(), 3), 100);
-        m_file->remove();
+        m_file.remove();
     }
     else if(m_status == DownloadData::Finished)
     {
@@ -149,8 +149,6 @@ void Downloader::replyFinished()
         model->setData(model->index(m_index.row(), 2), DownloadData::Finished);
     }
 
-    delete m_file;
-    m_file = 0;
     m_status = DownloadData::Nothing;
     emit downloadFinish();
 }

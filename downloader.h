@@ -20,6 +20,7 @@
 
 #include <QObject>
 #include <QModelIndex>
+#include <QFile>
 #include "downloaddata.h"
 
 class QNetworkAccessManager;
@@ -53,15 +54,10 @@ private Q_SLOTS:
 private:
     QNetworkAccessManager *m_manager;
     QModelIndex m_index;
-    QFile *m_file;
+    QFile m_file;
     QNetworkReply *m_reply;
 
     int m_progress; // progress indikator (0 - 100)
-//    bool m_isPaused; // indikator pause
-//    bool m_isDownloading; // indikator mengunduh
-//    bool m_isFinished; // indikator unduhan selesai
-//    bool m_isResuming; // indikator unduhan dari proses resume
-//    bool m_isCanceled; // indikator unduhan dibatalkan
     DownloadData::Status m_status;
 
     void downloadProgress(qint64, qint64);
