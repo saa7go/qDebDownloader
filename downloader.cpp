@@ -48,7 +48,7 @@ void Downloader::download(const QModelIndex &idx)
     m_index = idx;
     m_status = DownloadData::Nothing;
 
-    QString fileName = idx.model()->index(idx.row(), 1).data().toString();
+    QString fileName = idx.model()->index(idx.row(), 2).data().toString();
     QSettings settings("./apt-web.ini", QSettings::IniFormat);
     QString dirPath = settings.value("lokasi-folder-unduhan", QString()).toString();
     if(!dirPath.isEmpty())
@@ -64,7 +64,7 @@ void Downloader::download(const QModelIndex &idx)
 
     m_file.setFileName(fileName);
     QIODevice::OpenMode openMode = QIODevice::WriteOnly;
-    int status = m_index.model()->index(m_index.row(), 2).data(Qt::EditRole).toInt();
+    int status = m_index.model()->index(m_index.row(), 3).data(Qt::EditRole).toInt();
     bool continueDownload = false;
 
     if(status == DownloadData::Paused || status == DownloadData::Waiting) // paused atau waiting
@@ -84,7 +84,7 @@ void Downloader::download(const QModelIndex &idx)
     if(continueDownload)
     {
         qint64 start = m_file.size();
-        qint64 end = m_index.model()->index(m_index.row(), 5).data(Qt::EditRole).toLongLong()-1;
+        qint64 end = m_index.model()->index(m_index.row(), 6).data(Qt::EditRole).toLongLong()-1;
         QString str = QString("bytes=%1-%2").arg(QString::number(start)).arg(QString::number(end));
         req.setRawHeader("Range",  str.toAscii());
     }
@@ -95,7 +95,7 @@ void Downloader::download(const QModelIndex &idx)
     connect(m_reply, SIGNAL(destroyed()), this, SLOT(replyDeleted()));
 
     QAbstractItemModel *model = const_cast<QAbstractItemModel*>(m_index.model());
-    model->setData(model->index(m_index.row(), 2), DownloadData::Downloading);
+    model->setData(model->index(m_index.row(), 3), DownloadData::Downloading);
     m_status = DownloadData::Downloading;
 }
 
@@ -106,7 +106,7 @@ void Downloader::replyReadRead()
 
     QByteArray arr = m_reply->readAll();
     m_file.write(arr);
-    downloadProgress(m_file.size(), m_index.model()->index(m_index.row(), 5).data(Qt::EditRole).toLongLong());
+    downloadProgress(m_file.size(), m_index.model()->index(m_index.row(), 6).data(Qt::EditRole).toLongLong());
 }
 
 void Downloader::replyFinished()
@@ -126,7 +126,7 @@ void Downloader::replyFinished()
 
     QAbstractItemModel *model = const_cast<QAbstractItemModel*>(m_index.model());
 
-    if(m_file.size() == model->index(m_index.row(), 5).data(Qt::EditRole).toLongLong())
+    if(m_file.size() == model->index(m_index.row(), 6).data(Qt::EditRole).toLongLong())
         m_status = DownloadData::Finished; //        m_isFinished = true;
 
     m_file.close();
@@ -134,19 +134,19 @@ void Downloader::replyFinished()
     if(m_status == DownloadData::Paused)
     {
         model = const_cast<QAbstractItemModel*>(m_index.model());
-        model->setData(model->index(m_index.row(), 2), DownloadData::Paused);
+        model->setData(model->index(m_index.row(), 3), DownloadData::Paused);
     }
     else if(m_status == DownloadData::Canceled)
     {
         model = const_cast<QAbstractItemModel*>(m_index.model());
-        model->setData(model->index(m_index.row(), 2), 4);
-        model->setData(model->index(m_index.row(), 3), 100);
+        model->setData(model->index(m_index.row(), 3), 4);
+        model->setData(model->index(m_index.row(), 4), 100);
         m_file.remove();
     }
     else if(m_status == DownloadData::Finished)
     {
         model = const_cast<QAbstractItemModel*>(m_index.model());
-        model->setData(model->index(m_index.row(), 2), DownloadData::Finished);
+        model->setData(model->index(m_index.row(), 3), DownloadData::Finished);
     }
 
     m_status = DownloadData::Nothing;
@@ -155,7 +155,7 @@ void Downloader::replyFinished()
 
 void Downloader::pause()
 {
-    int status = m_index.model()->index(m_index.row(), 2).data(Qt::EditRole).toInt();
+    int status = m_index.model()->index(m_index.row(), 3).data(Qt::EditRole).toInt();
     if(status == DownloadData::Downloading)
     {
         m_status = DownloadData::Paused;
@@ -165,7 +165,7 @@ void Downloader::pause()
 
 void Downloader::cancel()
 {
-    int status = m_index.model()->index(m_index.row(), 2).data(Qt::EditRole).toInt();
+    int status = m_index.model()->index(m_index.row(), 3).data(Qt::EditRole).toInt();
     if(status == DownloadData::Downloading || status == DownloadData::Paused || status == DownloadData::Waiting)
     {
         m_status = DownloadData::Canceled;

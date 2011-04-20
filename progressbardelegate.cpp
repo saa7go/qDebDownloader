@@ -52,7 +52,7 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
 
 
     QColor col = Qt::transparent;
-    int status = index.model()->index(index.row(), 2).data(Qt::EditRole).toInt();
+    int status = index.model()->index(index.row(), 3).data(Qt::EditRole).toInt();
 
     if(status == DownloadData::Downloading)
         col.setNamedColor("#3ef100");

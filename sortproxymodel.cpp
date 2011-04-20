@@ -33,17 +33,22 @@ bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right)
     int column = left.column();
     QVariant leftData, rightData;
 
-    if(column == 1) {
-        leftData = sourceModel()->data(left, Qt::DisplayRole);
-        rightData = sourceModel()->data(right, Qt::DisplayRole);
-        return leftData.toString().toAscii() < rightData.toString().toAscii();
-    }
-    else if(column == 3) {
+    if(column == 0) {
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toInt() < rightData.toInt();
     }
-    else if (column == 4 || column == 5){ // semoga column 4 & 5
+    if(column == 2) {
+        leftData = sourceModel()->data(left, Qt::DisplayRole);
+        rightData = sourceModel()->data(right, Qt::DisplayRole);
+        return leftData.toString().toAscii() < rightData.toString().toAscii();
+    }
+    else if(column == 4) {
+        leftData = sourceModel()->data(left, Qt::EditRole);
+        rightData = sourceModel()->data(right, Qt::EditRole);
+        return leftData.toInt() < rightData.toInt();
+    }
+    else if (column == 5 || column == 6){ // semoga column 5 & 6
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toLongLong() < rightData.toLongLong();
@@ -59,7 +64,7 @@ bool SortProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
     if(m_hideUnchecked == false)
         return true;
 
-    QModelIndex idx = sourceModel()->index(source_row, 1, source_parent);
+    QModelIndex idx = sourceModel()->index(source_row, 0, source_parent);
     return idx.data(Qt::CheckStateRole).toBool();
 }
 
@@ -71,3 +76,4 @@ void SortProxyModel::setHideUncheked(bool val)
     m_hideUnchecked = val;
     invalidateFilter();
 }
+
