@@ -40,7 +40,7 @@ int DownloadTableModel::rowCount(const QModelIndex &parent) const
 
 int DownloadTableModel::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : 6;
+    return parent.isValid() ? 0 : 7;
 }
 
 QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
@@ -52,14 +52,21 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     {
         DownloadData data = m_data.at(index.row());
         if(index.column() == 0)
-            return data.url();
+        {
+            if(role == Qt::DisplayRole)
+                return QString();
+            else
+                m_data.at(index.row()).selected();
+        }
         else if(index.column() == 1)
-            return data.packageName();
+            return data.url();
         else if(index.column() == 2)
-            return data.status();
+            return data.packageName();
         else if(index.column() == 3)
-            return data.progress();
+            return data.status();
         else if(index.column() == 4)
+            return data.progress();
+        else if(index.column() == 5)
         {
             if(role == Qt::EditRole)
                 return data.size();
@@ -76,7 +83,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
                 }
             }
         }
-        else if(index.column() == 5)
+        else if(index.column() == 6)
         {
             if(role == Qt::EditRole)
                 return data.fileSize();
@@ -91,7 +98,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == 1)
+        if(index.column() == 0)
         {
             if(m_data.at(index.row()).selected())
                 return Qt::Checked;
@@ -101,9 +108,9 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::TextAlignmentRole)
     {
-        if(index.column() == 4)
-            return Qt::AlignCenter;
         if(index.column() == 5)
+            return Qt::AlignCenter;
+        if(index.column() == 6)
         {
             Qt::Alignment fl = Qt::AlignRight | Qt::AlignVCenter;
             return (int)fl;
@@ -127,7 +134,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         int row = index.row(), col = index.column();
-        if(col == 0)
+        if(col == 1)
         {
             if(m_data[row].url() != value.toString())
             {
@@ -135,7 +142,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col == 1)
+        else if(col == 2)
         {
             if(m_data.at(row).packageName() != value.toString())
             {
@@ -143,7 +150,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col ==2)
+        else if(col == 3)
         {
             if(m_data.at(row).status() != value.toInt())
             {
@@ -152,7 +159,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, rightIndex);
             }
         }
-        else if(col == 3)
+        else if(col == 4)
         {
             if(m_data.at(row).progress() != value.toInt())
             {
@@ -160,7 +167,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col == 4)
+        else if(col == 5)
         {
             if(role == Qt::DisplayRole)
             {
@@ -176,7 +183,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 }
             }
         }
-        else if(col == 5)
+        else if(col == 6)
         {
             if(m_data.at(row).fileSize() != value.toLongLong())
             {
@@ -189,7 +196,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == 1)
+        if(index.column() == 0)
         {
             int  _state = value.toInt();
             bool isChecked;
@@ -212,7 +219,7 @@ Qt::ItemFlags DownloadTableModel::flags(const QModelIndex &index) const
 
     if(index.isValid())
     {
-        if(index.column() == 1)
+        if(index.column() == 0)
         {
             _flags |= Qt::ItemIsUserCheckable;
             if(m_checkable)
@@ -247,16 +254,18 @@ QVariant DownloadTableModel::headerData(int section, Qt::Orientation orientation
         if(orientation == Qt::Horizontal)
         {
             if(section == 0)
-                return tr("Url");
+                return QString();
             else if(section == 1)
-                return tr("Nama file");
+                return tr("Url");
             else if(section == 2)
-                return tr("Status");
+                return tr("Nama file");
             else if(section == 3)
-                return tr("Progres Unduhan");
+                return tr("Status");
             else if(section == 4)
-                return tr("Ukuran Terunduh");
+                return tr("Progres Unduhan");
             else if(section == 5)
+                return tr("Ukuran Terunduh");
+            else if(section == 6)
                 return tr("Ukuran File");
         }
         else {
@@ -271,5 +280,5 @@ void DownloadTableModel::setCheckEnabled(bool val)
     // men-disable kolom nomor 1 (kolom dimulai dari 0)
     m_checkable = val;
     int row = rowCount() - 1;
-    emit dataChanged(index(0, 1), index(row, 1));
+    emit dataChanged(index(0, 0), index(row, 0));
 }
