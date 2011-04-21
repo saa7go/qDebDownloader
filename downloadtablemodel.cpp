@@ -1,20 +1,19 @@
-/* This file is part of apt-offline.
+/* This file is part of qDebDownloader.
 *
 * Copyright (c) 2011 - Christian Kurniawan Ginting S. <saa7_go@terralinux.org>
 *
-* apt-offline is free software: you can redistribute it and/or modify
+* qDebDownloader is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
 *
-* apt-offline is distributed in the hope that it will be useful,
+* qDebDownloader is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
-* along with apt-offline. If not, see <http://www.gnu.org/licenses/>. */
-
+* along with qDebDownloader. If not, see <http://www.gnu.org/licenses/>. */
 #include "downloadtablemodel.h"
 #include <QStringList>
 #include <QUrl>
@@ -51,22 +50,22 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         DownloadData data = m_data.at(index.row());
-        if(index.column() == 0)
+        if(index.column() == COL_CHECHED)
         {
             if(role == Qt::DisplayRole)
                 return QString();
             else
                 m_data.at(index.row()).selected();
         }
-        else if(index.column() == 1)
+        else if(index.column() == COL_URL)
             return data.url();
-        else if(index.column() == 2)
+        else if(index.column() == COL_PACKAGE_NAME)
             return data.packageName();
-        else if(index.column() == 3)
+        else if(index.column() == COL_STATUS)
             return data.status();
-        else if(index.column() == 4)
+        else if(index.column() == COL_PROGRESS)
             return data.progress();
-        else if(index.column() == 5)
+        else if(index.column() == COL_CURRENT_SIZE)
         {
             if(role == Qt::EditRole)
                 return data.size();
@@ -83,7 +82,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
                 }
             }
         }
-        else if(index.column() == 6)
+        else if(index.column() == COL_TARGET_SIZE)
         {
             if(role == Qt::EditRole)
                 return data.fileSize();
@@ -98,7 +97,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == 0)
+        if(index.column() == COL_CHECHED)
         {
             if(m_data.at(index.row()).selected())
                 return Qt::Checked;
@@ -108,9 +107,9 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::TextAlignmentRole)
     {
-        if(index.column() == 5)
+        if(index.column() == COL_CURRENT_SIZE)
             return Qt::AlignCenter;
-        if(index.column() == 6)
+        if(index.column() == COL_TARGET_SIZE)
         {
             Qt::Alignment fl = Qt::AlignRight | Qt::AlignVCenter;
             return (int)fl;
@@ -134,7 +133,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         int row = index.row(), col = index.column();
-        if(col == 1)
+        if(col == COL_URL)
         {
             if(m_data[row].url() != value.toString())
             {
@@ -142,7 +141,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col == 2)
+        else if(col == COL_PACKAGE_NAME)
         {
             if(m_data.at(row).packageName() != value.toString())
             {
@@ -150,7 +149,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col == 3)
+        else if(col == COL_STATUS)
         {
             if(m_data.at(row).status() != value.toInt())
             {
@@ -159,7 +158,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, rightIndex);
             }
         }
-        else if(col == 4)
+        else if(col == COL_PROGRESS)
         {
             if(m_data.at(row).progress() != value.toInt())
             {
@@ -167,7 +166,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 emit dataChanged(index, index);
             }
         }
-        else if(col == 5)
+        else if(col == COL_CURRENT_SIZE)
         {
             if(role == Qt::DisplayRole)
             {
@@ -183,7 +182,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
                 }
             }
         }
-        else if(col == 6)
+        else if(col == COL_TARGET_SIZE)
         {
             if(m_data.at(row).fileSize() != value.toLongLong())
             {
@@ -196,7 +195,7 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == 0)
+        if(index.column() == COL_CHECHED)
         {
             int  _state = value.toInt();
             bool isChecked;
@@ -219,7 +218,7 @@ Qt::ItemFlags DownloadTableModel::flags(const QModelIndex &index) const
 
     if(index.isValid())
     {
-        if(index.column() == 0)
+        if(index.column() == COL_CHECHED)
         {
             _flags |= Qt::ItemIsUserCheckable;
             if(m_checkable)
@@ -253,19 +252,19 @@ QVariant DownloadTableModel::headerData(int section, Qt::Orientation orientation
     {
         if(orientation == Qt::Horizontal)
         {
-            if(section == 0)
+            if(section == COL_CHECHED)
                 return QString();
-            else if(section == 1)
+            else if(section == COL_URL)
                 return tr("Url");
-            else if(section == 2)
+            else if(section == COL_PACKAGE_NAME)
                 return tr("Nama file");
-            else if(section == 3)
+            else if(section == COL_STATUS)
                 return tr("Status");
-            else if(section == 4)
+            else if(section == COL_PROGRESS)
                 return tr("Progres Unduhan");
-            else if(section == 5)
+            else if(section == COL_CURRENT_SIZE)
                 return tr("Ukuran Terunduh");
-            else if(section == 6)
+            else if(section == COL_TARGET_SIZE)
                 return tr("Ukuran File");
         }
         else {

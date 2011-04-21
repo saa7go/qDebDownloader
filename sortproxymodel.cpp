@@ -1,21 +1,21 @@
-/* This file is part of apt-offline.
+/* This file is part of qDebDownloader.
 *
 * Copyright (c) 2011 - Christian Kurniawan Ginting S. <saa7_go@terralinux.org>
 *
-* apt-offline is free software: you can redistribute it and/or modify
+* qDebDownloader is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
 *
-* apt-offline is distributed in the hope that it will be useful,
+* qDebDownloader is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
-* along with apt-offline. If not, see <http://www.gnu.org/licenses/>. */
-
+* along with qDebDownloader. If not, see <http://www.gnu.org/licenses/>. */
 #include "sortproxymodel.h"
+#include "downloadtablemodel.h"
 #include <QDebug>
 
 SortProxyModel::SortProxyModel(QObject *parent) :
@@ -33,22 +33,22 @@ bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right)
     int column = left.column();
     QVariant leftData, rightData;
 
-    if(column == 0) {
+    if(column == DownloadTableModel::COL_CHECHED) {
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toInt() < rightData.toInt();
     }
-    if(column == 2) {
+    if(column == DownloadTableModel::COL_PACKAGE_NAME) {
         leftData = sourceModel()->data(left, Qt::DisplayRole);
         rightData = sourceModel()->data(right, Qt::DisplayRole);
         return leftData.toString().toAscii() < rightData.toString().toAscii();
     }
-    else if(column == 4) {
+    else if(column == DownloadTableModel::COL_PROGRESS) {
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toInt() < rightData.toInt();
     }
-    else if (column == 5 || column == 6){ // semoga column 5 & 6
+    else if (column == DownloadTableModel::COL_CURRENT_SIZE || column == DownloadTableModel::COL_TARGET_SIZE){ // semoga column 5 & 6
         leftData = sourceModel()->data(left, Qt::EditRole);
         rightData = sourceModel()->data(right, Qt::EditRole);
         return leftData.toLongLong() < rightData.toLongLong();
@@ -64,7 +64,7 @@ bool SortProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
     if(m_hideUnchecked == false)
         return true;
 
-    QModelIndex idx = sourceModel()->index(source_row, 0, source_parent);
+    QModelIndex idx = sourceModel()->index(source_row, DownloadTableModel::COL_CHECHED, source_parent);
     return idx.data(Qt::CheckStateRole).toBool();
 }
 

@@ -1,4 +1,4 @@
-TARGET = apt-offline
+TARGET = qDebDownloader
 
 HEADERS += \
     aptweb.h \
@@ -38,4 +38,4 @@ FORMS += \
 RESOURCES += \
     image.qrc
 
-win32:RC_FILE = apt-offline.rc
+win32:RC_FILE = qDebDownloader.rc
