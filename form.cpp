@@ -463,7 +463,7 @@ void Form::writeSettings()
 void Form::on_actionJumlahUnduhan_triggered()
 {
     bool ok;
-    int val = QInputDialog::getInt(this, "Jumlah unduhan", "Nilai(1-6)", 
+    int val = QInputDialog::getInt(this, tr("Jumlah unduhan"), tr("Nilai(1-6)"),
 m_maks_concurrent, 1, 6, 1, &ok);
     if(ok)
     {

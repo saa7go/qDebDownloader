@@ -15,12 +15,16 @@
 * You should have received a copy of the GNU General Public License
 * along with qDebDownloader. If not, see <http://www.gnu.org/licenses/>. */
 #include <QApplication>
+#include <QTranslator>
 #include "form.h"
-#include <QDebug>
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    QTranslator translator;
+    translator.load(QString("qDebDownloader_%1").arg(QLocale::system().name()).toAscii());
+    app.installTranslator(&translator);
 
     Form form;
     form.makeCenter();

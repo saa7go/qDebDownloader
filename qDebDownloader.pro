@@ -39,3 +39,5 @@ RESOURCES += \
     image.qrc
 
 win32:RC_FILE = qDebDownloader.rc
+
+TRANSLATIONS += qDebDownloader_en_US.ts
