@@ -143,7 +143,7 @@ void Form::initActions()
     for(int i = 0; i < repoGroup->actions().count(); i++)
         repoGroup->actions()[i]->setCheckable(true);
 
-    QMenu  *menuRepositori = new QMenu("Repositori", this);
+    QMenu  *menuRepositori = new QMenu(tr("Repositori"), this);
     ui->menu_Pengaturan->insertMenu(ui->actionFolderUnduhan, menuRepositori);
     menuRepositori->addActions(repoGroup->actions());
     QSettings settings("./apt-web.ini", QSettings::IniFormat);
@@ -269,7 +269,7 @@ void Form::downloadList(const QStringList &packages)
     if(packages.count() > 0)
     {
         getFileSize();
-        ui->statusbar->showMessage("Mendapatkan ukuran file yang akan diunduh...");
+        ui->statusbar->showMessage(tr("Mendapatkan ukuran file yang akan diunduh..."));
     }
     else
     {
@@ -335,6 +335,7 @@ void Form::on_unduhButton_clicked()
     }
 
     ui->treeView->header()->hideSection(DownloadTableModel::COL_CHECHED);
+    ui->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_proxyModel->setHideUncheked(true);
     m_timer->start();
 
@@ -476,7 +477,7 @@ void Form::on_actionFolderUnduhan_triggered()
 {
     QSettings settings("./apt-web.ini", QSettings::IniFormat);
 
-    QString dir = QFileDialog::getExistingDirectory(this, "Direktori Unduhan", settings.value("lokasi-folder-unduhan", QString()).toString());
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Direktori Unduhan"), settings.value("lokasi-folder-unduhan", QString()).toString());
     if(dir.isEmpty())
         return;
 
@@ -494,7 +495,7 @@ void Form::on_actionProxy_triggered()
 void Form::error(const QString &error)
 {
     sender()->deleteLater();
-    QMessageBox::critical(this, "Error", error);
+    QMessageBox::critical(this, tr("Error"), error);
     ui->cariButton->setEnabled(true);
     ui->cariPaketLineEdit->setEnabled(true);
     ui->statusbar->clearMessage();
@@ -553,7 +554,7 @@ void Form::slotSizeReceived(const QModelIndex &idx, qint64 size)
         ui->unduhButton->setEnabled(true);
         ui->pilihSemuaButton->setEnabled(true);
         ui->kosongkanSemuaButton->setEnabled(true);
-        ui->statusbar->showMessage(QString("Daftar paket yang dibutuhkan berjumlah %1 dengan total ukuran %2").arg(m_model->rowCount()).arg(ui->totalLabel->text()), 5000);
+        ui->statusbar->showMessage(tr("Daftar paket yang dibutuhkan berjumlah %1 dengan total ukuran %2").arg(m_model->rowCount()).arg(ui->totalLabel->text()), 5000);
     }
 }
 
@@ -592,8 +593,37 @@ void Form::setTotalFileSize(const QModelIndex &idx)
 
 void Form::on_lanjutkanButton_clicked()
 {
-//    if(!ui->treeView->currentIndex().isValid())
-//        return;
+    if(!m_selectionModel->hasSelection())
+        return;
+    if(m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS).count() == 0)
+        return;
+    QModelIndexList indexes = m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS);
+    int status;
+    int pausedIndexes_count = 0;
+    for(int i = 0; i < indexes.count(); i++)
+    {
+        const QModelIndex &index = m_proxyModel->mapToSource(indexes.at(i));
+        status = index.data(Qt::EditRole).toInt();
+        if(status == DownloadData::Paused)
+        {
+            m_model->setData(m_model->index(index.row(), DownloadTableModel::COL_STATUS), DownloadData::Waiting);
+            m_queue.append(index.row());
+            pausedIndexes_count++;
+        }
+    }
+
+    while(pausedIndexes_count > 0)
+    {
+        if(m_downloaderList.count() > 0)
+        {
+            verifyDownloads();
+            pausedIndexes_count--;
+        }
+        else
+            break;
+    }
+
+    /*
     if(!m_selectionModel->hasSelection())
         return;
     if(m_selectionModel->selectedIndexes().count() == 0)
@@ -604,7 +634,6 @@ void Form::on_lanjutkanButton_clicked()
     ui->hentikanButton->setEnabled(true);
     ui->batalButton->setEnabled(true);
 
-//    QModelIndex idx = m_proxyModel->mapToSource(ui->treeView->currentIndex());
     QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
     if(!idx.isValid())
         return;
@@ -635,14 +664,71 @@ void Form::on_lanjutkanButton_clicked()
         // masukkan kembali ke antrian unduhan
         m_queue.prepend(idx.row());
     }
+    */
 }
 
 void Form::on_hentikanButton_clicked()
 {
-//    if(!ui->treeView->currentIndex().isValid())
-//        return;
+    qDebug() << "Hentikan!";
+
     if(!m_selectionModel->hasSelection())
         return;
+    if(m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS).count() == 0)
+        return;
+
+    QModelIndexList indexes = m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS);
+    int status;
+
+    QList<QModelIndex> notDownloadingIndex;
+    QList<QModelIndex> downloadingIndexes;
+
+    // cari yang bukan dalam keadaan Finished dan Canceled
+    for(int i = 0 ; i < indexes.count(); i++)
+    {
+        const QModelIndex &index = m_proxyModel->mapToSource(indexes.at(i));
+        status = index.data(Qt::EditRole).toInt();
+        if(status == DownloadData::Finished || status == DownloadData::Canceled)
+            continue;
+        if(status == DownloadData::Downloading)
+            downloadingIndexes.append(index);
+        else
+        {
+            notDownloadingIndex.append(index);
+        }
+    }
+
+    if(notDownloadingIndex.count() == 0 && downloadingIndexes.count() == 0)
+        return;
+
+    if(notDownloadingIndex.count() > 0)
+    {
+        for(int i = 0; i < notDownloadingIndex.count(); i++)
+        {
+            m_queue.removeAll(notDownloadingIndex.at(i).row());
+            m_model->setData(notDownloadingIndex.at(i), DownloadData::Paused);
+        }
+    }
+
+    if(downloadingIndexes.count() > 0)
+    {
+        for(int i = 0; i < downloadingIndexes.count(); i++)
+        {
+            const QModelIndex &index = m_model->index(downloadingIndexes.at(i).row(), DownloadTableModel::COL_URL);
+            Downloader *dl = downloaderMap.key(index);
+            if(dl)
+            {
+                qDebug() << "PAUSE NOW";
+                dl->pause();
+            }
+            else {
+                qDebug() << "CANNOT PAUSED!";
+            }
+        }
+    }
+    if(notDownloadingIndex.count() > 0)
+        verifyDownloads();
+    // ======================================
+    /*
     if(m_selectionModel->selectedIndexes().count() == 0)
         return;
 
@@ -672,96 +758,186 @@ void Form::on_hentikanButton_clicked()
     }
     qDebug() << "Pause unduhan" << idx.data().toString();
     dl->pause();
+    */
 }
 
 void Form::on_batalButton_clicked()
 {
-    if(m_selectionModel->hasSelection() && m_selectionModel->selectedIndexes().count() > 0)
+    if(!m_selectionModel->hasSelection())
+        return;
+    if(m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS).count() == 0)
+        return;
+
+    const QModelIndexList &indexes = m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS);
+    int status;
+
+    QModelIndexList downloadingIndexes;
+    QModelIndexList pauseAndWaitingIndexes;
+
+    for(int i = 0; i < indexes.count(); i++)
     {
-        QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
-        idx = m_model->index(idx.row(), DownloadTableModel::COL_STATUS); // status
-        int status = idx.data(Qt::EditRole).toInt();
-        idx = m_model->index(idx.row(), DownloadTableModel::COL_URL); // url
-
-        // jika unduhan dalam keadaan sedang mengunduh
+        const QModelIndex &index = m_proxyModel->mapToSource(m_proxyModel->index(indexes.at(i).row(), DownloadTableModel::COL_STATUS));
+        status = index.data(Qt::EditRole).toInt();
         if(status == DownloadData::Downloading)
+            downloadingIndexes.append(index);
+        else if(status == DownloadData::Paused || status == DownloadData::Waiting || status == DownloadData::Nothing)
+            pauseAndWaitingIndexes.append(index);
+    }
+
+    if(pauseAndWaitingIndexes.count() == 0 && downloadingIndexes.count() == 0)
+    {
+        qDebug() << "No index to be canceled";
+        return;
+    }
+
+    for(int i = 0; i < pauseAndWaitingIndexes.count(); i++)
+    {
+        m_queue.removeAll(pauseAndWaitingIndexes.at(i).row());
+        m_model->setData(m_model->index(pauseAndWaitingIndexes.at(i).row(), DownloadTableModel::COL_STATUS), DownloadData::Canceled);
+        m_model->setData(m_model->index(pauseAndWaitingIndexes.at(i).row(), DownloadTableModel::COL_PROGRESS), 100);
+    }
+
+    for(int i = 0; i < downloadingIndexes.count(); i++)
+    {
+        const QModelIndex &index = m_model->index(downloadingIndexes.at(i).row(), DownloadTableModel::COL_URL);
+        Downloader *dl = downloaderMap.key(index);
+        if(dl)
         {
-            Downloader *dl = downloaderMap.key(idx);
-
-            // pastikan Downloader valid
-            if(dl != 0)
-            {
-                qDebug() << "Batal";
-                dl->cancel(); // batalkan unduhan, pada kondisi ini penghapusan file dikelola oleh objek Downloader
-            }
-            else
-            {
-                qDebug() << "Downloader tidak ditemukan!";
-            }
-
+            qDebug() << "CANCELED";
+            dl->cancel();
         }
-        // jika unduhan dalam keadaan PAUSED atau menunggu untuk diunduh
-        else if(status == DownloadData::Waiting || status == DownloadData::Paused)
-        {
-            QSettings settings("./apt-web.ini", QSettings::IniFormat);
-            QDir downloadDir(settings.value("lokasi-folder-unduhan", QString()).toString());
-            QString filePath = m_model->index(idx.row(), DownloadTableModel::COL_PACKAGE_NAME).data().toString(); // default di current dir
-
-            if(downloadDir.exists())
-                filePath = QDir::toNativeSeparators(downloadDir.path()) + QDir::separator() + filePath;
-
-            QFile file(filePath);
-            if(file.exists())
-            {
-                // jika status unduhan dalam keadaan menunggu
-                // maka antrian yg sebelumnya ditambahkan harus dihapus
-                if(status == DownloadData::Waiting)
-                    m_queue.removeAll(idx.row());
-
-//                file.remove(); // hapus unduhan yg dibatalkan
-                // ganti status unduhan menjadi CANCELED
-                m_model->setData(m_model->index(idx.row(), DownloadTableModel::COL_STATUS), DownloadData::Canceled); // status
-                m_model->setData(m_model->index(idx.row(), DownloadTableModel::COL_PROGRESS), 100); // progress
-            }
-
-            // cek jika sudah tidak ada unduhan
-//            if(m_queue.count() == 0)
-            verifyDownloads();
+        else {
+            qDebug() << "CANNOT CANCELED";
         }
     }
+
+    if(m_downloaderList.count() > 0)
+        verifyDownloads();
+
+//    if(m_selectionModel->hasSelection() && m_selectionModel->selectedIndexes().count() > 0)
+//    {
+//        QModelIndex idx = m_proxyModel->mapToSource(m_selectionModel->selectedIndexes().at(0));
+//        idx = m_model->index(idx.row(), DownloadTableModel::COL_STATUS); // status
+//        int status = idx.data(Qt::EditRole).toInt();
+//        idx = m_model->index(idx.row(), DownloadTableModel::COL_URL); // url
+
+//        // jika unduhan dalam keadaan sedang mengunduh
+//        if(status == DownloadData::Downloading)
+//        {
+//            Downloader *dl = downloaderMap.key(idx);
+
+//            // pastikan Downloader valid
+//            if(dl != 0)
+//            {
+//                qDebug() << "Batal";
+//                dl->cancel(); // batalkan unduhan, pada kondisi ini penghapusan file dikelola oleh objek Downloader
+//            }
+//            else
+//            {
+//                qDebug() << "Downloader tidak ditemukan!";
+//            }
+
+//        }
+//        // jika unduhan dalam keadaan PAUSED atau menunggu untuk diunduh
+//        else if(status == DownloadData::Waiting || status == DownloadData::Paused)
+//        {
+//            QSettings settings("./apt-web.ini", QSettings::IniFormat);
+//            QDir downloadDir(settings.value("lokasi-folder-unduhan", QString()).toString());
+//            QString filePath = m_model->index(idx.row(), DownloadTableModel::COL_PACKAGE_NAME).data().toString(); // default di current dir
+
+//            if(downloadDir.exists())
+//                filePath = QDir::toNativeSeparators(downloadDir.path()) + QDir::separator() + filePath;
+
+//            QFile file(filePath);
+//            if(file.exists())
+//            {
+//                // jika status unduhan dalam keadaan menunggu
+//                // maka antrian yg sebelumnya ditambahkan harus dihapus
+//                if(status == DownloadData::Waiting)
+//                    m_queue.removeAll(idx.row());
+
+////                file.remove(); // hapus unduhan yg dibatalkan
+//                // ganti status unduhan menjadi CANCELED
+//                m_model->setData(m_model->index(idx.row(), DownloadTableModel::COL_STATUS), DownloadData::Canceled); // status
+//                m_model->setData(m_model->index(idx.row(), DownloadTableModel::COL_PROGRESS), 100); // progress
+//            }
+
+//            // cek jika sudah tidak ada unduhan
+////            if(m_queue.count() == 0)
+//            verifyDownloads();
+//        }
+//    }
 }
 
 void Form::slotCurrentRowChanged(const QModelIndex &current, const QModelIndex &)
 {
-    if(current.isValid())
-        changeStatusButton(m_proxyModel->mapToSource(current));
+    qDebug() << "Current Row Changed";
+//    if(current.isValid())
+//        changeStatusButton(m_proxyModel->mapToSource(current));
 }
 
-void Form::changeStatusButton(const QModelIndex &idx)
+void Form::changeStatusButton(const QModelIndexList &indexes)
 {
-    if(idx.isValid())
-    {
-        int status = m_model->index(idx.row(), DownloadTableModel::COL_STATUS).data(Qt::EditRole).toInt(); // status
+    if(indexes.count() == 0)
+        return;
+    bool can_resume = false;
+    bool can_pause = false;
+    bool can_cancel = false;
 
-        if(status == 0 || status == 2 || status == 4)
+    for(int i = 0; i < indexes.count(); i++)
+    {
+        const QModelIndex &idx = indexes.at(i);
+        switch(idx.data(Qt::EditRole).toInt())
         {
-            ui->lanjutkanButton->setEnabled(false);
-            ui->hentikanButton->setEnabled(false);
-            ui->batalButton->setEnabled(false);
-        }
-        else if(status == 1)
-        {
-            ui->lanjutkanButton->setEnabled(false);
-            ui->hentikanButton->setEnabled(true);
-            ui->batalButton->setEnabled(true);
-        }
-        else if(status == 3)
-        {
-            ui->lanjutkanButton->setEnabled(true);
-            ui->hentikanButton->setEnabled(false);
-            ui->batalButton->setEnabled(true);
+        case DownloadData::Nothing:
+            can_pause = true;
+            can_cancel = true;
+            break;
+        case DownloadData::Downloading:
+            can_pause = true;
+            can_cancel = true;
+            break;
+        case DownloadData::Paused:
+            can_resume = true;
+            can_cancel = true;
+            break;
+        case DownloadData::Finished:
+            break;
+        case DownloadData::Waiting:
+            can_cancel = true;
+            can_pause = true;
+            break;
+        default:// DownloadData::Cancel
+            can_resume = true;
+            break;
         }
     }
+    ui->lanjutkanButton->setEnabled(can_resume);
+    ui->hentikanButton->setEnabled(can_pause);
+    ui->batalButton->setEnabled(can_cancel);
+//    if(idx.isValid())
+//    {
+//        int status = m_model->index(idx.row(), DownloadTableModel::COL_STATUS).data(Qt::EditRole).toInt(); // status
+
+//        if(status == 0 || status == 2 || status == 4)
+//        {
+//            ui->lanjutkanButton->setEnabled(false);
+//            ui->hentikanButton->setEnabled(false);
+//            ui->batalButton->setEnabled(false);
+//        }
+//        else if(status == 1)
+//        {
+//            ui->lanjutkanButton->setEnabled(false);
+//            ui->hentikanButton->setEnabled(true);
+//            ui->batalButton->setEnabled(true);
+//        }
+//        else if(status == 3)
+//        {
+//            ui->lanjutkanButton->setEnabled(true);
+//            ui->hentikanButton->setEnabled(false);
+//            ui->batalButton->setEnabled(true);
+//        }
+//    }
 }
 
 void Form::timerTimeout()
@@ -771,10 +947,13 @@ void Form::timerTimeout()
 
     if(m_selectionModel->selectedRows().count() == 0)
         return;
-    QModelIndex idx = m_selectionModel->selectedRows().at(0);
 
+    changeStatusButton(m_selectionModel->selectedRows(DownloadTableModel::COL_STATUS));
+    /*
+    QModelIndex idx = m_selectionModel->selectedRows().at(0);
     idx = m_proxyModel->mapToSource(idx);
     changeStatusButton(idx);
+    */
 }
 
 void Form::makeCenter()
@@ -788,57 +967,13 @@ void Form::makeCenter()
 void Form::verifyDownloads()
 {
     qDebug() << "queue:" << m_queue;
-    /*
-    // ================
-    QSettings settings("./apt-web.ini", QSettings::IniFormat);
-    QString dirPath = settings.value("lokasi-folder-unduhan", QString()).toString();
-    QString fileName;
-    // ================
-    */
     if(m_queue.count() > 0)
     {
         if(m_downloaderList.count() > 0)
         {
             int curr = m_queue.dequeue();
-            /*
-            // ========================
-            fileName = m_model->index(curr, DownloadTableModel::COL_PACKAGE_NAME).data().toString();
-            if(!dirPath.isEmpty())
-            {
-                QDir dir(dirPath);
-                if(dir.exists())
-                    fileName = QDir::toNativeSeparators(dir.path()) + QDir::separator() + fileName;
-            }
-            QFileInfo fInfo(fileName);
-
-            if(fInfo.exists()) // cek jika file ada atau tidak
-            {
-                qDebug() << fInfo.filePath() << ":" << (fInfo.exists() ? "Exist" : "Not Exists");
-                qint64 fSize = fInfo.size();
-                qint64 tSize = m_model->index(curr, DownloadTableModel::COL_TARGET_SIZE).data(Qt::EditRole).toLongLong();
-                qDebug() << fSize  << ":" << tSize;
-                if(fSize == tSize) // bandingkan ukuran file di lokal dan ukuran di url
-                {
-                    qDebug() << "File udah terdonlot, Skipped!";
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_STATUS), DownloadData::Finished);
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_PROGRESS), 100);
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_CURRENT_SIZE), fSize);
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_CURRENT_SIZE), "File Sudah Terdownload Sebelumnya", Qt::DisplayRole);
-                    return;
-                }
-                else if (fSize < tSize){ // file sudah diunduh tapi belum kelar (anggapannya seperti itu)
-                    qDebug() << "Belum kelar donlot!";
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_STATUS), DownloadData::Waiting);
-                    m_model->setData(m_model->index(curr, DownloadTableModel::COL_CURRENT_SIZE), fSize);
-                }
-            }
-            // =========================
-            */
             QModelIndex idx = m_model->index(curr, DownloadTableModel::COL_URL); // url
             Downloader *dl = m_downloaderList.dequeue();
-//            m_model->setData(
-//                        m_model->index(curr, DownloadTableModel::COL_STATUS),
-//                        DownloadData::Downloading); // status
             downloaderMap[dl] = idx;
             dl->download(idx);
             qDebug() << dl->objectName() << idx;
@@ -883,7 +1018,9 @@ void Form::verifyDownloads()
             ui->buttonWidget->hide();
             ui->statusbar->showMessage(tr("Semua paket telah diunduh..."));
             m_proxyModel->setHideUncheked(false);
+            m_selectionModel->clearSelection();
             ui->treeView->header()->showSection(DownloadTableModel::COL_CHECHED);
+            ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
         }
     }
 }
