@@ -253,7 +253,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="form.ui" line="377"/>
         <source>Lokasi folder unduhan...</source>
-        <translation type="unfinished">Download locatoin...</translation>
+        <translation type="unfinished">Download location...</translation>
     </message>
     <message>
         <location filename="form.ui" line="385"/>
