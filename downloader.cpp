@@ -108,9 +108,13 @@ void Downloader::download(const QModelIndex &idx)
     if(continueDownload)
     {
         qint64 start = m_file.size();
-        qint64 end = m_index.model()->index(m_index.row(), DownloadTableModel::COL_TARGET_SIZE).data(Qt::EditRole).toLongLong()-1;
-        QString str = QString("bytes=%1-%2").arg(QString::number(start)).arg(QString::number(end));
-        req.setRawHeader("Range",  str.toAscii());
+        if(start > 0)
+        {
+            qint64 end = m_index.model()->index(m_index.row(), DownloadTableModel::COL_TARGET_SIZE).data(Qt::EditRole).toLongLong()-1;
+            QString str = QString("bytes=%1-%2").arg(QString::number(start)).arg(QString::number(end));
+            req.setRawHeader("Range",  str.toAscii());
+            qDebug() << str.toAscii();
+        }
     }
 
     m_reply = m_manager->get(req);
