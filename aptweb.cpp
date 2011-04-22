@@ -83,7 +83,7 @@ void AptWeb::findPackage(const QString &packagesName, Distribution dist)
     const QByteArray data_encoded = data.toString().remove(0, 1).toAscii();
     qDebug() << data_encoded;
     request.setUrl(QUrl("http://apt-web.dahsy.at"));
-    request.setRawHeader("User-Agent", "AptWeb-Qt 0.1");
+    request.setRawHeader("User-Agent", "qDebDownloader 0.1");
     request.setRawHeader("Referer", "http://apt-web.dahsy.at/");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setHeader(QNetworkRequest::ContentLengthHeader, data_encoded.size());
@@ -101,11 +101,11 @@ void AptWeb::replyFinished()
     {
         QString _error;
         if(reply->error() == QNetworkReply::HostNotFoundError)
-            _error = "Host tidak ditemukan. Periksa koneksi internet anda.";
+            _error = tr("Host tidak ditemukan. Periksa koneksi internet anda.");
         else if(reply->error() == QNetworkReply::TimeoutError)
-            _error = "Koneksi timeout.";
+            _error = tr("Koneksi timeout.");
         else if(reply->error() == QNetworkReply::ProxyNotFoundError)
-            _error = "Proxy gagal ditemukan. Periksa konfigurasi internet anda";
+            _error = tr("Proxy gagal ditemukan. Periksa konfigurasi internet anda");
         else
             _error = reply->errorString();
         emit error(_error);
