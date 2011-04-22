@@ -94,7 +94,7 @@ private:
     void setMaksConcurrent(int val);
     void writeSettings();
     void getFileSize();
-    void changeStatusButton(const QModelIndex &idx);
+    void changeStatusButton(const QModelIndexList &indexes);
     void verifyDownloads();
 };
 
