@@ -74,7 +74,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
                 {
                     double dSize;
                     QString ukuran;
-                    AptOffline::caculateSize(data.size(), &dSize, &ukuran);
+                    qDebDownloader::caculateSize(data.size(), &dSize, &ukuran);
                     return QString("%1 %2").arg(QString::number(dSize, 'f', 2)).arg(ukuran);
                 }
                 else {
@@ -90,7 +90,7 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
             {
                 double dSize;
                 QString ukuran;
-                AptOffline::caculateSize(data.fileSize(), &dSize, &ukuran);
+                qDebDownloader::caculateSize(data.fileSize(), &dSize, &ukuran);
                 return QString("%1 %2").arg(QString::number(dSize, 'f', 2)).arg(ukuran);
             }
         }
@@ -117,10 +117,13 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
 
 #ifdef Q_WS_WIN
-    if(role == Qt::FontRole) {
-        QFont _font = qApp->font();
-        _font.setBold(true);
-        return _font;
+    if(qDebDownloader::isBeforeWinVista())
+    {
+        if(role == Qt::FontRole) {
+            QFont _font = qApp->font();
+            _font.setBold(true);
+            return _font;
+        }
     }
 #endif
     return QVariant();
