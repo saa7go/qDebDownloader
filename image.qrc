@@ -2,9 +2,11 @@
     <qresource prefix="/">
         <file>images/icons.png</file>
         <file>images/edit-find.png</file>
-        <file>images/media-playback-pause.png</file>
-        <file>images/media-playback-start.png</file>
-        <file>images/media-playback-stop.png</file>
+        <file alias="pause.png">images/media-playback-pause.png</file>
+        <file alias="start.png">images/media-playback-start.png</file>
+        <file alias="stop.png">images/media-playback-stop.png</file>
         <file>images/document-save.png</file>
+        <file alias="waiting.png">images/waiting.png</file>
+        <file alias="finished.png">images/emblem-default.png</file>
     </qresource>
 </RCC>
