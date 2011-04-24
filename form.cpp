@@ -77,9 +77,12 @@ Form::Form(QWidget *parent) :
 #ifdef Q_WS_WIN
     // note: di windows xp default font terlihat sangat kecil
     // jadi saya coba set ke 10
-    QFont tmpFont = qApp->font();
-    tmpFont.setPointSize(10);
-    qApp->setFont(tmpFont);
+    if(qDebDownloader::isBeforeWinVista())
+    {
+        QFont tmpFont = qApp->font();
+        tmpFont.setPointSize(10);
+        qApp->setFont(tmpFont);
+    }
 #endif
 }
 
@@ -581,7 +584,7 @@ void Form::setTotalFileSize(const QModelIndex &idx)
                 total += m_model->index(i, column).data(Qt::EditRole).toLongLong();
         }
 
-        AptOffline::caculateSize(total, &dTotal, &ukuran);
+        qDebDownloader::caculateSize(total, &dTotal, &ukuran);
 
         if(column == DownloadTableModel::COL_CURRENT_SIZE)
             ui->terunduhLabel->setText(QString("%1 %2").arg(QString::number(dTotal, 'f', 2)).arg(ukuran));
