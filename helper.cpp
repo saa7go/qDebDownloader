@@ -15,8 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with qDebDownloader. If not, see <http://www.gnu.org/licenses/>. */
 #include "helper.h"
-
-void AptOffline::caculateSize(qint64 inSize, double *outSize, QString *strPostfix)
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+void qDebDownloader::caculateSize(qint64 inSize, double *outSize, QString *strPostfix)
 {
     *outSize = inSize;
 
@@ -33,3 +35,25 @@ void AptOffline::caculateSize(qint64 inSize, double *outSize, QString *strPostfi
     else
         *strPostfix = "B";
 }
+
+#ifdef Q_OS_WIN
+    bool qDebDownloader::isBeforeWinVista()
+    {
+        static bool isSet = false;
+        static bool beforeWinVista;
+
+        if(!isSet)
+        {
+            OSVERSIONINFO osVerInfo;
+
+            ZeroMemory(&osVerInfo, sizeof(OSVERSIONINFO));
+            osVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+            GetVersionEx(&osVerInfo);
+            beforeWinVista = osVerInfo.dwMajorVersion < 6 ? true : false;
+            isSet = true;
+        }
+        return beforeWinVista;
+    }
+
+#endif

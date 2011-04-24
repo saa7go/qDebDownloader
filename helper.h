@@ -19,8 +19,11 @@
 
 #include <QString>
 
-namespace AptOffline {
+namespace qDebDownloader {
     void caculateSize(qint64 inSize, double *outSize, QString *strPostfix);
+#ifdef Q_OS_WIN
+    bool isBeforeWinVista();
+#endif
 }
 
 #endif // HELPER_H
