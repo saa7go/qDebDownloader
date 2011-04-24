@@ -18,6 +18,7 @@
 #define PROGRESSBARDELEGATE_H
 
 #include <QStyledItemDelegate>
+#include <QPixmap>
 
 class ProgressBarDelegate : public QStyledItemDelegate
 {
@@ -26,6 +27,17 @@ public:
     explicit ProgressBarDelegate(QObject *parent = 0);
     ~ProgressBarDelegate();
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+#ifdef Q_OS_WIN
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+#endif
+
+private:
+    QPixmap m_downloadPix;
+    QPixmap m_pausePix;
+    QPixmap m_cancelPix;
+    QPixmap m_waitingPix;
+    QPixmap m_finishedPix;
+    bool m_scaled;
 };
 
 #endif // PROGRESSBARDELEGATE_H
