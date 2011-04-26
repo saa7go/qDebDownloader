@@ -43,40 +43,40 @@ void AptWeb::findPackage(const QString &packagesName, Distribution dist)
 {
     QNetworkRequest request;
 
-    int dist_num = 0;
+//    int dist_num = 0;
 
-    switch(dist)
-    {
-    case Ubuntu_MaverickMeerkat_i386:
-        dist_num = 0; break;
-    case Ubuntu_MaverickMeerkat_amd64:
-        dist_num = 1; break;
-    case Ubuntu_LucidLynx_i386:
-        dist_num = 2; break;
-    case Ubuntu_LucidLynx_amd64:
-        dist_num = 3; break;
-    case Ubuntu_KarmicKoala_i386:
-        dist_num = 4; break;
-    case Ubuntu_JauntyJackalope_i386:
-        dist_num = 5; break;
-    case Ubuntu_IntrepidIbex_i386:
-        dist_num = 6; break;
-    case Ubuntu_HardyHeron_i386:
-        dist_num = 7; break;
-    case Ubuntu_GutsyGibbon_i386:
-        dist_num = 8; break;
-    case XUbuntu_GutsyGibbon_i386:
-        dist_num = 9; break;
-    case Ubuntu_FeistyFawn_i386:
-        dist_num = 10; break;
-    case Ubuntu_EdgyEft_Server_i386:
-        dist_num = 11; break;
-    default: // Ubuntu_DapperDrake_i386
-        dist_num = 12; break;
-    }
+//    switch(dist)
+//    {
+//    case Ubuntu_MaverickMeerkat_i386:
+//        dist_num = 0; break;
+//    case Ubuntu_MaverickMeerkat_amd64:
+//        dist_num = 1; break;
+//    case Ubuntu_LucidLynx_i386:
+//        dist_num = 2; break;
+//    case Ubuntu_LucidLynx_amd64:
+//        dist_num = 3; break;
+//    case Ubuntu_KarmicKoala_i386:
+//        dist_num = 4; break;
+//    case Ubuntu_JauntyJackalope_i386:
+//        dist_num = 5; break;
+//    case Ubuntu_IntrepidIbex_i386:
+//        dist_num = 6; break;
+//    case Ubuntu_HardyHeron_i386:
+//        dist_num = 7; break;
+//    case Ubuntu_GutsyGibbon_i386:
+//        dist_num = 8; break;
+//    case XUbuntu_GutsyGibbon_i386:
+//        dist_num = 9; break;
+//    case Ubuntu_FeistyFawn_i386:
+//        dist_num = 10; break;
+//    case Ubuntu_EdgyEft_Server_i386:
+//        dist_num = 11; break;
+//    default: // Ubuntu_DapperDrake_i386
+//        dist_num = 12; break;
+//    }
 
     QUrl data;
-    data.addQueryItem("dist", QString::number(dist_num));
+    data.addQueryItem("dist", QString::number(dist));
     data.addQueryItem("mirror", QString::number(m_repoId));
     data.addQueryItem("packages", packagesName);
     data.addQueryItem("submit", "submit");
