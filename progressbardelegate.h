@@ -32,12 +32,13 @@ public:
 #endif
 
 private:
-    QPixmap m_downloadPix;
-    QPixmap m_pausePix;
-    QPixmap m_cancelPix;
-    QPixmap m_waitingPix;
-    QPixmap m_finishedPix;
-    bool m_scaled;
+    mutable QPixmap m_downloadPix;
+    mutable QPixmap m_pausePix;
+    mutable QPixmap m_cancelPix;
+    mutable QPixmap m_waitingPix;
+    mutable QPixmap m_finishedPix;
+    mutable bool m_scaled;
+    mutable QSize m_iconSizeHint;
 };
 
 #endif // PROGRESSBARDELEGATE_H
