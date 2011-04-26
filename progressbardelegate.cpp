@@ -41,7 +41,7 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
 
     painter->save();
 
-    int status = index.model()->index(index.row(), DownloadTableModel::COL_STATUS).data(Qt::EditRole).toInt();
+    const int &status = index.model()->index(index.row(), DownloadTableModel::COL_STATUS).data(Qt::EditRole).toInt();
 
     // menggambar highlight
     if(option.state & QStyle::State_Selected)
@@ -57,22 +57,15 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
         painter->drawRect(option.rect);
     }
     // menggambar icon di sebelah kiri progressbar
-    QSize iconSizeHint = sizeHint(option, index);
-    iconSizeHint.setWidth(iconSizeHint.height());
     if(!m_scaled) {
-        QPixmap &pausePix = const_cast<QPixmap&>(m_pausePix);
-        QPixmap &downloadPix = const_cast<QPixmap&>(m_downloadPix);
-        QPixmap &cancelPix = const_cast<QPixmap&>(m_cancelPix);
-        QPixmap &waitingPix = const_cast<QPixmap&>(m_waitingPix);
-        QPixmap &finishedPix = const_cast<QPixmap&>(m_finishedPix);
-        bool &scaled = const_cast<bool&>(m_scaled);
-
-        pausePix = QPixmap(":/pause.png").scaled(iconSizeHint);
-        downloadPix = QPixmap(":/start.png").scaled(iconSizeHint);
-        cancelPix = QPixmap(":/stop.png").scaled(iconSizeHint);
-        waitingPix = QPixmap(":/waiting.png").scaled(iconSizeHint);
-        finishedPix = QPixmap(":/finished.png").scaled(iconSizeHint);
-        scaled = true;
+        m_iconSizeHint = sizeHint(option, index);
+        m_iconSizeHint.setWidth(m_iconSizeHint.height());
+        m_pausePix = QPixmap(":/pause.png").scaled(m_iconSizeHint);
+        m_downloadPix = QPixmap(":/start.png").scaled(m_iconSizeHint);
+        m_cancelPix = QPixmap(":/stop.png").scaled(m_iconSizeHint);
+        m_waitingPix = QPixmap(":/waiting.png").scaled(m_iconSizeHint);
+        m_finishedPix = QPixmap(":/finished.png").scaled(m_iconSizeHint);
+        m_scaled = true;
     }
 
     QPixmap statusPix;
@@ -86,11 +79,11 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
         statusPix = m_finishedPix;
     else // DownloadData::Canceled
         statusPix = m_cancelPix;
-    painter->drawPixmap(option.rect.x(), option.rect.y(), iconSizeHint.width(), iconSizeHint.height(), statusPix);
+    painter->drawPixmap(option.rect.x(), option.rect.y(), m_iconSizeHint.width(), m_iconSizeHint.height(), statusPix);
 
     // menggambar background progressbar
     QRect _backgrounRect = option.rect;
-    _backgrounRect.adjust(iconSizeHint.width() + 2, 2, -2, -2);
+    _backgrounRect.adjust(m_iconSizeHint.width() + 2, 2, -2, -2);
     QPen _pen = Qt::NoPen;
     QBrush _brush(QApplication::palette().color(QPalette::Window));
     painter->setPen(_pen);
@@ -110,7 +103,7 @@ void ProgressBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
 
     // menggambar progress yang sedang berjalan
     QRect rect = option.rect;
-    rect.adjust(iconSizeHint.width() + 4, 4, -4, -4);
+    rect.adjust(m_iconSizeHint.width() + 4, 4, -4, -4);
 
     int width = rect.width();
     width = (index.data(Qt::EditRole).toDouble() / 100.0) * width;
