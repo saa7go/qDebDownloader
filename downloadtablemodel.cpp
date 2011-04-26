@@ -47,30 +47,33 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
+    const int &row = index.row(), &col = index.column();
+    const DownloadData &data = m_data.at(row);
+    const QString &error = m_error.at(row);
+
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        DownloadData data = m_data.at(index.row());
         if(index.column() == COL_CHECHED)
         {
             if(role == Qt::DisplayRole)
                 return QString();
             else
-                m_data.at(index.row()).selected();
+                data.selected();
         }
-        else if(index.column() == COL_URL)
+        else if(col == COL_URL)
             return data.url();
-        else if(index.column() == COL_PACKAGE_NAME)
+        else if(col == COL_PACKAGE_NAME)
             return data.packageName();
-        else if(index.column() == COL_STATUS)
+        else if(col == COL_STATUS)
             return data.status();
-        else if(index.column() == COL_PROGRESS)
+        else if(col == COL_PROGRESS)
             return data.progress();
-        else if(index.column() == COL_CURRENT_SIZE)
+        else if(col == COL_CURRENT_SIZE)
         {
             if(role == Qt::EditRole)
                 return data.size();
             else {
-                if(m_error.at(index.row()).isEmpty())
+                if(error.isEmpty())
                 {
                     double dSize;
                     QString ukuran;
@@ -78,11 +81,11 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
                     return QString("%1 %2").arg(QString::number(dSize, 'f', 2)).arg(ukuran);
                 }
                 else {
-                    return m_error.at(index.row());
+                    return error;
                 }
             }
         }
-        else if(index.column() == COL_TARGET_SIZE)
+        else if(col == COL_TARGET_SIZE)
         {
             if(role == Qt::EditRole)
                 return data.fileSize();
@@ -97,9 +100,9 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == COL_CHECHED)
+        if(col == COL_CHECHED)
         {
-            if(m_data.at(index.row()).selected())
+            if(data.selected())
                 return Qt::Checked;
             else
                 return Qt::Unchecked;
@@ -107,9 +110,9 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
     }
     if(role == Qt::TextAlignmentRole)
     {
-        if(index.column() == COL_CURRENT_SIZE)
+        if(col == COL_CURRENT_SIZE)
             return Qt::AlignCenter;
-        if(index.column() == COL_TARGET_SIZE)
+        if(col == COL_TARGET_SIZE)
         {
             Qt::Alignment fl = Qt::AlignRight | Qt::AlignVCenter;
             return (int)fl;
@@ -133,39 +136,43 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
 {
     if(!index.isValid())
         return false;
+
+    const int &row = index.row(), &col = index.column();
+    DownloadData &data = m_data[row];
+    QString &error = m_error[row];
+
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        int row = index.row(), col = index.column();
         if(col == COL_URL)
         {
-            if(m_data[row].url() != value.toString())
+            if(data.url() != value.toString())
             {
-                m_data[row].setUrl(value.toString());
+                data.setUrl(value.toString());
                 emit dataChanged(index, index);
             }
         }
         else if(col == COL_PACKAGE_NAME)
         {
-            if(m_data.at(row).packageName() != value.toString())
+            if(data.packageName() != value.toString())
             {
-                m_data[row].setPackageName(value.toString());
+                data.setPackageName(value.toString());
                 emit dataChanged(index, index);
             }
         }
         else if(col == COL_STATUS)
         {
-            if(m_data.at(row).status() != value.toInt())
+            if(data.status() != value.toInt())
             {
                 QModelIndex rightIndex = this->index(row, col + 1);
-                m_data[row].setStatus(value.toInt());
+                data.setStatus(value.toInt());
                 emit dataChanged(index, rightIndex);
             }
         }
         else if(col == COL_PROGRESS)
         {
-            if(m_data.at(row).progress() != value.toInt())
+            if(data.progress() != value.toInt())
             {
-                m_data[row].setProgress(value.toInt());
+                data.setProgress(value.toInt());
                 emit dataChanged(index, index);
             }
         }
@@ -173,23 +180,23 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
         {
             if(role == Qt::DisplayRole)
             {
-                m_error[row] = value.toString();
+                error = value.toString();
                 emit dataChanged(index, index);
             }
             else
             {
-                if(m_data.at(row).size() != value.toLongLong())
+                if(data.size() != value.toLongLong())
                 {
-                    m_data[row].setSize(value.toLongLong());
+                    data.setSize(value.toLongLong());
                     emit dataChanged(index, index);
                 }
             }
         }
         else if(col == COL_TARGET_SIZE)
         {
-            if(m_data.at(row).fileSize() != value.toLongLong())
+            if(data.fileSize() != value.toLongLong())
             {
-                m_data[row].setFileSize(value.toLongLong());
+                data.setFileSize(value.toLongLong());
                 emit dataChanged(index, index);
             }
         }
@@ -198,14 +205,14 @@ bool DownloadTableModel::setData(const QModelIndex &index, const QVariant &value
     }
     if(role == Qt::CheckStateRole)
     {
-        if(index.column() == COL_CHECHED)
+        if(col == COL_CHECHED)
         {
             int  _state = value.toInt();
             bool isChecked;
             _state == 0 ? isChecked = false : isChecked = true;
-            if(m_data.at(index.row()).selected() != isChecked)
+            if(data.selected() != isChecked)
             {
-                m_data[index.row()].setSelected(isChecked);
+                data.setSelected(isChecked);
                 emit dataChanged(index, index);
             }
         }
