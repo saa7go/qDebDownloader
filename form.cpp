@@ -61,6 +61,7 @@ Form::Form(QWidget *parent) :
     ui->treeView->setModel(m_proxyModel);
     ui->treeView->header()->setResizeMode(0, QHeaderView::ResizeToContents);
     ui->treeView->setItemDelegateForColumn(DownloadTableModel::COL_PROGRESS, new ProgressBarDelegate(this)); // progress
+    ui->treeView->header()->hideSection(DownloadTableModel::COL_CHECHED);
     ui->treeView->header()->hideSection(DownloadTableModel::COL_URL); // url
     ui->treeView->header()->hideSection(DownloadTableModel::COL_STATUS); // status
     ui->treeView->header()->setMovable(false);
@@ -138,8 +139,8 @@ void Form::initActions()
     buayaKlasAction->setData(7);
     QAction *keboVlsmAction = repoGroup->addAction("Kebo vlsm.org");
     keboVlsmAction->setData(8);
-    QAction *itbAction = repoGroup->addAction("ITB");
-    itbAction->setData(9);
+//    QAction *itbAction = repoGroup->addAction("ITB");
+//    itbAction->setData(9);
     QAction *shloVlsmAction = repoGroup->addAction("SHLO vlsm.org");
     shloVlsmAction->setData(10);
 
@@ -156,6 +157,8 @@ void Form::initActions()
         m_repoID = 1;
     else if(m_repoID > (repoGroup->actions().count() - 1))
         m_repoID = repoGroup->actions().count() - 1;
+    else if(m_repoID == 9) // untuk sementara mirror ITB didisable
+        m_repoID = 0;
 
     for(int i = 0; i < repoGroup->actions().count(); i++)
     {
@@ -224,43 +227,17 @@ void Form::on_cariButton_clicked()
     ui->pilihSemuaButton->setEnabled(false);
     ui->kosongkanSemuaButton->setEnabled(false);
 
-    AptWeb::Distribution dist;
-    switch(ui->distribusiComboBox->itemData(ui->distribusiComboBox->currentIndex()).toInt())
-    {
-    case 0:
-        dist = AptWeb::Ubuntu_MaverickMeerkat_i386; break;
-    case 1:
-        dist = AptWeb::Ubuntu_MaverickMeerkat_amd64; break;
-    case 2:
-        dist = AptWeb::Ubuntu_LucidLynx_i386; break;
-    case 3:
-        dist = AptWeb::Ubuntu_LucidLynx_amd64; break;
-    case 4:
-        dist = AptWeb::Ubuntu_KarmicKoala_i386; break;
-    case 5:
-        dist = AptWeb::Ubuntu_JauntyJackalope_i386; break;
-    case 6:
-        dist = AptWeb::Ubuntu_IntrepidIbex_i386; break;
-    case 7:
-        dist = AptWeb::Ubuntu_HardyHeron_i386; break;
-    case 8:
-        dist = AptWeb::Ubuntu_GutsyGibbon_i386; break;
-    case 9:
-        dist = AptWeb::XUbuntu_GutsyGibbon_i386; break;
-    case 10:
-        dist = AptWeb::Ubuntu_FeistyFawn_i386; break;
-    case 11:
-        dist = AptWeb::Ubuntu_EdgyEft_Server_i386; break;
-    case 12:
-        dist = AptWeb::Ubuntu_DapperDrake_i386; break;
-    }
+    qApp->processEvents();
+
+    const int &dist = ui->distribusiComboBox->itemData(ui->distribusiComboBox->currentIndex()).toInt();
 
     AptWeb *aptWeb = new AptWeb(m_manager, this);
     aptWeb->setRepoId(m_repoID);
     connect(aptWeb, SIGNAL(downloadList(QStringList)), this, SLOT(downloadList(QStringList)));
     connect(aptWeb, SIGNAL(error(QString)), this, SLOT(error(QString)));
-    aptWeb->findPackage(ui->cariPaketLineEdit->text().trimmed(), dist);
+    aptWeb->findPackage(ui->cariPaketLineEdit->text().trimmed(), (AptWeb::Distribution)dist);
     ui->totalLabel->setText("0 B");
+    ui->treeView->header()->hideSection(DownloadTableModel::COL_CHECHED);
 }
 
 void Form::downloadList(const QStringList &packages)
@@ -558,6 +535,7 @@ void Form::slotSizeReceived(const QModelIndex &idx, qint64 size)
         ui->pilihSemuaButton->setEnabled(true);
         ui->kosongkanSemuaButton->setEnabled(true);
         ui->statusbar->showMessage(tr("Daftar paket yang dibutuhkan berjumlah %1 dengan total ukuran %2").arg(m_model->rowCount()).arg(ui->totalLabel->text()), 5000);
+        ui->treeView->header()->showSection(DownloadTableModel::COL_CHECHED);
     }
 }
 
@@ -1020,10 +998,10 @@ void Form::verifyDownloads()
             ui->cariPaketLineEdit->setEnabled(true);
             ui->buttonWidget->hide();
             ui->statusbar->showMessage(tr("Semua paket telah diunduh..."));
-            m_proxyModel->setHideUncheked(false);
             m_selectionModel->clearSelection();
             ui->treeView->header()->showSection(DownloadTableModel::COL_CHECHED);
             ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+            m_proxyModel->setHideUncheked(false);
         }
     }
 }
