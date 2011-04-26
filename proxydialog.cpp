@@ -52,7 +52,7 @@ void ProxyDialog::acceptProxy()
 {
     m_proxy = QNetworkProxy(); // reset
 
-    int index = ui->proxyListComboBox->currentIndex();
+    const int &index = ui->proxyListComboBox->currentIndex();
     if(index == 0)
         m_proxy.setType(QNetworkProxy::NoProxy);
     else if(index == 1)
