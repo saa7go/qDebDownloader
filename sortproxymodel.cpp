@@ -30,7 +30,7 @@ SortProxyModel::~SortProxyModel()
 
 bool SortProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    int column = left.column();
+    const int &column = left.column();
     QVariant leftData, rightData;
 
     if(column == DownloadTableModel::COL_CHECHED) {
@@ -63,8 +63,7 @@ bool SortProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
 {
     if(m_hideUnchecked == false)
         return true;
-
-    QModelIndex idx = sourceModel()->index(source_row, DownloadTableModel::COL_CHECHED, source_parent);
+    const QModelIndex &idx = sourceModel()->index(source_row, DownloadTableModel::COL_CHECHED, source_parent);
     return idx.data(Qt::CheckStateRole).toBool();
 }
 
