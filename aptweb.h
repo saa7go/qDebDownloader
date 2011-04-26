@@ -26,21 +26,22 @@ class QNetworkAccessManager;
 class AptWeb : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(Distribution)
 public:
     enum Distribution {
-        Ubuntu_MaverickMeerkat_i386,
-        Ubuntu_MaverickMeerkat_amd64,
-        Ubuntu_LucidLynx_i386,
-        Ubuntu_LucidLynx_amd64,
-        Ubuntu_KarmicKoala_i386,
-        Ubuntu_JauntyJackalope_i386,
-        Ubuntu_IntrepidIbex_i386,
-        Ubuntu_HardyHeron_i386,
-        Ubuntu_GutsyGibbon_i386,
-        XUbuntu_GutsyGibbon_i386,
-        Ubuntu_FeistyFawn_i386,
-        Ubuntu_EdgyEft_Server_i386,
-        Ubuntu_DapperDrake_i386
+        Ubuntu_MaverickMeerkat_i386 = 0x00,
+        Ubuntu_MaverickMeerkat_amd64 = 0x01,
+        Ubuntu_LucidLynx_i386 = 0x02,
+        Ubuntu_LucidLynx_amd64 = 0x03,
+        Ubuntu_KarmicKoala_i386 = 0x04,
+        Ubuntu_JauntyJackalope_i386 = 0x05,
+        Ubuntu_IntrepidIbex_i386 = 0x06,
+        Ubuntu_HardyHeron_i386 = 0x07,
+        Ubuntu_GutsyGibbon_i386 = 0x08,
+        XUbuntu_GutsyGibbon_i386 = 0x09,
+        Ubuntu_FeistyFawn_i386 = 0x0A,
+        Ubuntu_EdgyEft_Server_i386 = 0x0B,
+        Ubuntu_DapperDrake_i386 = 0x0C
     };
 
     explicit AptWeb(QNetworkAccessManager *manager, QObject *parent = 0);
