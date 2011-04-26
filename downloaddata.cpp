@@ -26,7 +26,7 @@ DownloadData::DownloadData()
     d->fileSize = 0;
 }
 
-DownloadData::DownloadData(const QString &url, int status, int progress)
+DownloadData::DownloadData(const QString &url, /*const QString &packageName,*/ int status, int progress)
 {
     d = new DownloadDataPrivate;
     int length = url.length();
@@ -41,47 +41,63 @@ DownloadData::DownloadData(const QString &url, int status, int progress)
     d->fileSize = 0;
 }
 
-DownloadData::DownloadData(const DownloadData &other) : d(other.d)
+DownloadData::DownloadData(const DownloadData &other)
 {
+    d = other.d;
+    d->ref.ref();
 }
 
 DownloadData::~DownloadData()
 {
+    if(!d->ref.deref()) {
+        delete d;
+    }
 }
 
 const DownloadData& DownloadData::operator =(const DownloadData &other)
 {
-    d = other.d;
+    qAtomicAssign(d, other.d);
     return *this;
+}
+
+void DownloadData::detach()
+{
+    qAtomicDetach(d);
 }
 
 void DownloadData::setPackageName(const QString &packageName)
 {
+    detach();
     d->packageName = packageName;
 }
 
 void DownloadData::setUrl(const QString &url)
 {
+    detach();
     d->url = url;
 }
 
 void DownloadData::setStatus(int status)
 {
+    detach();
     d->status = status;
 }
 
 void DownloadData::setProgress(int progress)
 {
+    detach();
     d->progress = progress;
 }
 
 void DownloadData::setSelected(bool val)
 {
+    detach();
     d->selected = val;
 }
 
 void DownloadData::setSize(qint64 size)
 {
+    detach();
     d->size = size;
 }
 
@@ -117,6 +133,7 @@ qint64 DownloadData::size() const
 
 void DownloadData::setFileSize(qint64 size)
 {
+    detach();
     d->fileSize = size;
 }
 

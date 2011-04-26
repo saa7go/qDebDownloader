@@ -17,14 +17,14 @@
 #ifndef DOWNLOADDATAPRIVATE_H
 #define DOWNLOADDATAPRIVATE_H
 
-#include <QSharedData>
+#include <QAtomicInt>
 
-class DownloadDataPrivate : public QSharedData
+class DownloadDataPrivate
 {
 public:
-    DownloadDataPrivate() {}
+    DownloadDataPrivate() : ref(1) {}
     DownloadDataPrivate(const DownloadDataPrivate &other)
-        : QSharedData(other),
+        : ref(1),
           url(other.url),
           packageName(other.packageName),
           status(other.status),
@@ -34,6 +34,8 @@ public:
           fileSize(other.fileSize)
     {
     }
+
+    QAtomicInt ref;
 
     QString url;
     QString packageName;

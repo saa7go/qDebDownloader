@@ -18,7 +18,6 @@
 #define DOWNLOADDATA_H
 
 #include <QString>
-#include <QSharedDataPointer>
 
 class DownloadDataPrivate;
 
@@ -35,7 +34,7 @@ public:
     };
 
     DownloadData();
-    DownloadData(const QString &url, int status = 0, int progress = 0);
+    DownloadData(const QString &url, /*const QString &packageName, */int status = 0, int progress = 0);
     DownloadData(const DownloadData &other);
      ~DownloadData();
     const DownloadData& operator = (const DownloadData &other);
@@ -56,8 +55,10 @@ public:
     qint64 size() const;
     qint64 fileSize() const;
 
+    void detach();
+
 private:
-    QSharedDataPointer<DownloadDataPrivate> d;
+    DownloadDataPrivate *d;
 };
 
 #endif // DOWNLOADDATA_H
