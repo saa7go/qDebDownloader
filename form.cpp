@@ -97,19 +97,22 @@ Form::~Form()
 void Form::initRepoComboBoxes()
 {
     QComboBox *cb = ui->distribusiComboBox;
-    cb->addItem("Ubuntu 10.10 \"Maverick Meerkat\" i386", 0);
-    cb->addItem("Ubuntu 10.10 \"Maverick Meerkat\" amd64", 1);
-    cb->addItem("Ubuntu 10.04 \"Lucid Lynx\" i386", 2);
-    cb->addItem("Ubuntu 10.04 \"Lucid Lynx\" amd64", 3);
-    cb->addItem("Ubuntu 9.10 \"Karmic Koala\" i386", 4);
-    cb->addItem("Ubuntu 9.04 \"Jaunty Jackalope\" i386", 5);
-    cb->addItem("Ubuntu 8.10 \"Intrepid Ibex\" i386", 6);
-    cb->addItem( "Ubuntu 8.04 \"Hardy Heron\" i386", 7);
-    cb->addItem("Ubuntu 7.10 \"Gutsy Gibbon\" i386", 8);
-    cb->addItem("XUbuntu 7.10 \"Gutsy Gibbon\" i386", 9);
-    cb->addItem("Ubuntu 7.04 \"Feisty Fawn\" i386", 10);
-    cb->addItem("Ubuntu 6.10 \"Edgy Eftt\" Server i386", 11);
-    cb->addItem("Ubuntu 6.06 \"Dapper Drake\" i386", 12);
+    int n = 0;
+    cb->addItem("Ubuntu 11.04 \"Natty Narwhal\" i386", n++);
+    cb->addItem("Ubuntu 11.04 \"Natty Narwhal\" amd64", n++);
+    cb->addItem("Ubuntu 10.10 \"Maverick Meerkat\" i386", n++);
+    cb->addItem("Ubuntu 10.10 \"Maverick Meerkat\" amd64", n++);
+    cb->addItem("Ubuntu 10.04 \"Lucid Lynx\" i386", n++);
+    cb->addItem("Ubuntu 10.04 \"Lucid Lynx\" amd64", n++);
+    cb->addItem("Ubuntu 9.10 \"Karmic Koala\" i386", n++);
+    cb->addItem("Ubuntu 9.04 \"Jaunty Jackalope\" i386", n++);
+    cb->addItem("Ubuntu 8.10 \"Intrepid Ibex\" i386", n++);
+    cb->addItem( "Ubuntu 8.04 \"Hardy Heron\" i386", n++);
+    cb->addItem("Ubuntu 7.10 \"Gutsy Gibbon\" i386", n++);
+    cb->addItem("XUbuntu 7.10 \"Gutsy Gibbon\" i386", n++);
+    cb->addItem("Ubuntu 7.04 \"Feisty Fawn\" i386", n++);
+    cb->addItem("Ubuntu 6.10 \"Edgy Eftt\" Server i386", n++);
+    cb->addItem("Ubuntu 6.06 \"Dapper Drake\" i386", n++);
 }
 
 void Form::initActions()

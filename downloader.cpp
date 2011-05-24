@@ -105,6 +105,7 @@ void Downloader::download(const QModelIndex &idx)
 
     QNetworkRequest req;
     req.setUrl(url);
+    req.setRawHeader("User-Agent", "qDebDownloader 0.1");
     if(continueDownload)
     {
         qint64 start = m_file.size();

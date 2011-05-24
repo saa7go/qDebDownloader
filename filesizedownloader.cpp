@@ -36,6 +36,7 @@ void FileSizeDownloader::getSize(const QModelIndex &index)
 {
     m_idx = index;
     QNetworkRequest req;
+    req.setRawHeader("User-Agent", "qDebDownloader 0.1");
     req.setUrl(QUrl(m_idx.data().toString()));
     QNetworkReply *reply = m_manager->head(req);
     connect(reply, SIGNAL(finished()), SLOT(replyFinished()));
