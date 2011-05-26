@@ -34,6 +34,7 @@ FileSizeDownloader::~FileSizeDownloader()
 
 void FileSizeDownloader::getSize(const QModelIndex &index)
 {
+    qDebug() << objectName() << ":" << index.data().toString();
     m_idx = index;
     QNetworkRequest req;
     req.setRawHeader("User-Agent", "qDebDownloader 0.1");

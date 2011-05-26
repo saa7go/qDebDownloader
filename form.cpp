@@ -38,7 +38,7 @@
 #include "sortproxymodel.h"
 
 
-#define FILESIZE_GETTER_COUNT 6
+#define FILESIZE_GETTER_COUNT 4
 
 Form::Form(QWidget *parent) :
     QMainWindow(parent),
